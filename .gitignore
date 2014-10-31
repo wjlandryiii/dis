@@ -1,0 +1,7 @@
+*.swp
+*.o
+*.exe
+*.bin
+*.db
+*.pack
+data/*
