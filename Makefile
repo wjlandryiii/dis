@@ -1,15 +1,37 @@
 CC=gcc
-CFLAGS=-lcapstone -g
+CFLAGS=-lcapstone -lreadline -g
 
 all:	dis \
-	makedb \
-	printdb \
-	fakedis \
 	stringstore-test \
 	mapping-test \
-	lines-test
+	lines-test \
+	bytes-test.exe \
+	bytes-interact.exe \
+	interact-test.exe
+
+bytes-interact.exe: bytes-interact.o interact.o bytes.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+bytes-interact.o: bytes-interact.c bytes.h interact.o
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+interact-test.exe: interact-test.o interact.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+interact-test.o: interact-test.c interact.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+interact.o: interact.c interact.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 
 bytes.o: 	bytes.c bytes.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+bytes-test.exe: bytes-test.o bytes.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+bytes-test.o: bytes-test.c bytes.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 dis:		dis.c
@@ -69,3 +91,4 @@ lines.o: lines.c lines.h mapping.h stringstore.h
 clean:
 	rm -f dis makedb printdb fakedis stringstore-test mapping-test lines-test
 	rm -f *.o
+	rm -f *.exe
