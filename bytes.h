@@ -41,22 +41,6 @@ int
 disable_bytes(struct bytes *bytes, uint64_t first, uint64_t last);
 
 
-int
-copy_to_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
-
-int
-copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
-
-
-int
-set_class_data(struct bytes *bytes, uint64_t first, uint64_t last);
-
-int
-set_class_code(struct bytes *bytes, uint64_t first, uint64_t last);
-
-int set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
-
-
 
 #define BYTE_MASK         0x000000FF
 
@@ -103,6 +87,39 @@ is_value_valid(uint32_t flags){
 	return IS_VALUE_VALID(flags);
 }
 
+
+int
+copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
+
+int
+bytes_get_byte(struct bytes *t, uint64_t addr, uint8_t *byte_out);
+
+int
+bytes_get_word(struct bytes *bytes, uint64_t addr, uint16_t *word_out);
+
+int
+bytes_get_dword(struct bytes *bytes, uint64_t addr, uint32_t *dword_out);
+
+int
+bytes_get_qword(struct bytes *bytes, uint64_t addr, uint64_t *qword_out);
+
+
+int
+copy_to_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
+
+int
+bytes_put_byte(struct bytes *t, uint64_t addr, uint8_t value);
+
+int
+bytes_put_word(struct bytes *bytes, uint64_t addr, uint16_t value);
+
+int
+bytes_put_dword(struct bytes *bytes, uint64_t addr, uint32_t value);
+
+int
+bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value);
+
+
 #define CLASS_MASK        0x0000F000
 #define CLASS_UNKNOWN     0x00000000
 #define CLASS_CODE        0x00001000
@@ -115,6 +132,7 @@ is_value_valid(uint32_t flags){
 #define IS_CLASS_UNKNOWN(A)	(TEST_CLASS_FIELD(A, CLASS_UNKNOWN))
 #define IS_CLASS_CODE(A)	(TEST_CLASS_FIELD(A, CLASS_CODE))
 #define IS_CLASS_DATA(A)	(TEST_CLASS_FIELD(A, CLASS_DATA))
+#define IS_CLASS_TAIL(A)	(TEST_CLASS_FIELD(A, CLASS_TAIL))
 
 static inline uint32_t
 get_class_field(uint32_t flags){
@@ -146,6 +164,15 @@ is_class_tail(uint32_t flags){
 	return IS_CLASS_TAIL(flags);
 }
 
+int
+set_class_data(struct bytes *bytes, uint64_t first, uint64_t last);
+
+int
+set_class_code(struct bytes *bytes, uint64_t first, uint64_t last);
+
+int
+set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
+
 #define DATATYPE_MASK     0x000F0000
 #define DATATYPE_BYTE     0x00000000
 #define DATATYPE_WORD     0x00010000
@@ -172,22 +199,22 @@ set_datatype_field(uint32_t flags, uint32_t value){
 
 static inline int
 is_datatype_byte(uint32_t flags){
-	return get_datatype(flags) == DATATYPE_BYTE;
+	return get_datatype_field(flags) == DATATYPE_BYTE;
 }
 
 static inline int
 is_datatype_word(uint32_t flags){
-	return get_datatype(flags) == DATATYPE_WORD;
+	return get_datatype_field(flags) == DATATYPE_WORD;
 }
 
 static inline int
 is_datatype_dword(uint32_t flags){
-	return get_datatype(flags) == DATATYPE_DWORD;
+	return get_datatype_field(flags) == DATATYPE_DWORD;
 }
 
 static inline int
 is_datatype_qword(uint32_t flags){
-	return get_datatype(flags) == DATATYPE_QWORD;
+	return get_datatype_field(flags) == DATATYPE_QWORD;
 }
 
 

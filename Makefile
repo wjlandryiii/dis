@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-lcapstone -lreadline -g
+CFLAGS=-lcapstone -lreadline -g -Wall
 
 all:	dis \
 	stringstore-test \

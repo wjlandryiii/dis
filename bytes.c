@@ -59,9 +59,7 @@ new_bytechunk(uint64_t first, uint64_t last){
 		}
 		return chunk;
 	} else {
-		fprintf(stderr, "new_bytechunk(%016llx, %016llx): "
-				"invalid size\n",
-				first, last);
+		fprintf(stderr, "new_bytechunk(): invalid size\n");
 		return NULL;
 	}
 }
@@ -162,7 +160,6 @@ merge_chunks(struct bytechunk *before, struct bytechunk *after){
 	uint64_t gap_size;
 	uint64_t new_size;
 	uint32_t *buf;
-	uint64_t n;
 	
 	assert(before->bc_next == after);
 
@@ -300,38 +297,6 @@ find_chunk_containing_addr(struct bytes *bytes, uint64_t addr){
 }
 
 
-static int
-real_copy_to_bytes(struct bytechunk *chunk, uint64_t addr,
-		uint8_t *buf, size_t size){
-	int offset;
-	uint32_t flags;
-	int i;
-
-	offset = addr - chunk->bc_first;
-	for(i = 0; i < size; i++){
-		flags = chunk->bc_bytes[offset+i];
-		flags = set_byte_field(flags, buf[i]);
-		flags = set_value_field(flags, VALUE_VALID);
-		chunk->bc_bytes[offset+i] = flags;
-	}
-	return 0;
-}
-
-int
-copy_to_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
-	struct bytechunk *chunk;
-
-	chunk = find_chunk_containing_addr(bytes, addr);
-	if(chunk){
-		if(addr + size - 1 <= chunk->bc_last){
-			return real_copy_to_bytes(chunk, addr, buf, size);
-		} else {
-			return -1;
-		}
-	} else {
-		return -1;
-	}
-}
 
 static int
 real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr,
@@ -369,25 +334,169 @@ copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
 
 }
 
+int
+bytes_get_byte(struct bytes *bytes, uint64_t addr, uint8_t *byte_out){
+	struct bytechunk *chunk;
+	int offset;
+	uint8_t byte;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		offset = addr - chunk->bc_first;
+		byte = get_byte_field(chunk->bc_bytes[offset]);
+		if(byte_out){
+			*byte_out = byte;
+		}
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+int
+bytes_get_word(struct bytes *bytes, uint64_t addr, uint16_t *word_out){
+	struct bytechunk *chunk;
+	uint16_t word;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		r = real_copy_from_bytes(chunk, addr, (void*) &word, sizeof(word));
+		if(r){
+			return r;
+		}
+		if(word_out){
+			*word_out = word;
+		}
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+int
+bytes_get_dword(struct bytes *bytes, uint64_t addr, uint32_t *dword_out){
+	struct bytechunk *chunk;
+	uint32_t dword;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		r = real_copy_from_bytes(chunk, addr, (void*)&dword, sizeof(dword));
+		if(r){
+			return r;
+		}
+		if(dword_out){
+			*dword_out = dword;
+		}
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+int
+bytes_get_qword(struct bytes *bytes, uint64_t addr, uint64_t *qword_out){
+	struct bytechunk *chunk;
+	uint64_t qword;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		r = real_copy_from_bytes(chunk, addr, (void*) &qword, sizeof(qword));
+		if(r){
+			return r;
+		}
+		if(qword_out){
+			*qword_out = qword;
+		}
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
 static int
-is_chunk_range_class_unkown(struct bytechunk *chunk,
-		uint64_t first, uint64_t last){
-	int start;
-	int stop;
+real_copy_to_bytes(struct bytechunk *chunk, uint64_t addr,
+		uint8_t *buf, size_t size){
+	int offset;
 	uint32_t flags;
 	int i;
 
-	start = first - chunk->bc_first;
-	stop = (last - chunk->bc_first) + 1;
-
-	for(i = start; i < stop; i++){
-		flags = chunk->bc_bytes[i];
-		if(!is_class_unknown(flags)){
-			return 0;
-		}
+	offset = addr - chunk->bc_first;
+	for(i = 0; i < size; i++){
+		flags = chunk->bc_bytes[offset+i];
+		flags = set_byte_field(flags, buf[i]);
+		flags = set_value_field(flags, VALUE_VALID);
+		chunk->bc_bytes[offset+i] = flags;
 	}
-	return 1;
+	return 0;
 }
+
+int
+copy_to_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		if(addr + size - 1 <= chunk->bc_last){
+			return real_copy_to_bytes(chunk, addr, buf, size);
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+int
+bytes_put_byte(struct bytes *bytes, uint64_t addr, uint8_t value){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return real_copy_to_bytes(chunk, addr, &value, sizeof(value));
+	} else {
+		return -1;
+	}
+}
+
+int
+bytes_put_word(struct bytes *bytes, uint64_t addr, uint16_t value){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return real_copy_to_bytes(chunk, addr, (void *)&value, sizeof(value));
+	} else {
+		return -1;
+	}
+}
+
+int
+bytes_put_dword(struct bytes *bytes, uint64_t addr, uint32_t value){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return real_copy_to_bytes(chunk, addr, (void *)&value, sizeof(value));
+	} else {
+		return -1;
+	}
+}
+
+int
+bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return real_copy_to_bytes(chunk, addr, (void *)&value, sizeof(value));
+	} else {
+		return -1;
+	}
+}
+
 
 static int
 is_range_in_chunk(struct bytechunk *chunk, uint64_t first, uint64_t last){
@@ -483,6 +592,7 @@ set_chunk_range_class_data(struct bytechunk *chunk,
 	return 0;
 }
 
+
 int
 set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last){
 	struct bytechunk *chunk;
@@ -498,7 +608,6 @@ set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last){
 		return -1;
 	}
 }
-
 
 
 int

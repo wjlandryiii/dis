@@ -3,9 +3,12 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <alloca.h>
 #include <stdarg.h>
+#define  __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #include "interact.h"
 #include "bytes.h"
@@ -17,7 +20,7 @@ trace_set_class_code(struct bytes *bytes, uint64_t first, uint64_t last){
 	int r;
 
 	if(tracing){
-		printf("set_class_code(%p, 0x%llu, 0x%llu) : ",
+		printf("set_class_code(%p, 0x%" PRIx64 ", 0x%" PRIx64 ") : ",
 				bytes, first, last);
 		fflush(stdout);
 	}
@@ -28,10 +31,10 @@ trace_set_class_code(struct bytes *bytes, uint64_t first, uint64_t last){
 	return r;
 }
 
-struct command commands[];
+const struct command commands[];
 
 int help_main(int argc, char *argv[]){
-	struct command *cmd;
+	const struct command *cmd;
 
 	cmd = commands;
 	while(cmd->c_name){
@@ -43,6 +46,7 @@ int help_main(int argc, char *argv[]){
 
 int exit_main(int argc, char *argv[]){
 	interact_done = 1;
+	return 0;
 }
 
 struct bytes *bytes = NULL;
@@ -79,11 +83,11 @@ int print_main(int argc, char *argv[]){
 	while(chunk){
 		size = (chunk->bc_last - chunk->bc_first) + 1;
 		printf("\tchunk: %p\n", chunk);
-		printf("\t\tfirst: 0x%llx (%1$d)\n", chunk->bc_first);
-		printf("\t\t last: 0x%llx (%1$d)\n", chunk->bc_last);
+		printf("\t\tfirst: 0x%1$" PRIx64 " (%1$" PRIu64 ")\n", chunk->bc_first);
+		printf("\t\t last: 0x%1$" PRIx64 " (%1$" PRIu64 ")\n", chunk->bc_last);
 		printf("\t\tbytes:\n");
 		for(i = 0; i < size; i++){
-			printf("\t\t\t%02llx: %08x\n",
+			printf("\t\t\t%02" PRIx64 ": %08x\n",
 					chunk->bc_first + i,
 					chunk->bc_bytes[i]);
 		}
@@ -116,7 +120,7 @@ int enable_main(int argc, char *argv[]){
 			return 1;
 		}
 		r = enable_bytes(bytes, first, last);
-		printf("enable_bytes(%p, 0x%llx, 0x%llx) : %d\n",
+		printf("enable_bytes(%p, 0x%" PRIx64 ", 0x%" PRIx64 ") : %d\n",
 				bytes, first, last, r);
 		return 0;
 	}
@@ -138,10 +142,10 @@ int copy_to_bytes_main(int argc, char *argv[]){
 			printf("not an integer: %s\n", argv[1]);
 			return 1;
 		}
-		s = argv[2];
+		s =  argv[2];
 		len = strlen(s);
-		r = copy_to_bytes(bytes, addr, s, len);
-		printf("copy_to_bytes(%p, 0x%llx, \"%.20s\", %3d) : %d\n",
+		r = copy_to_bytes(bytes, addr, (uint8_t *)s, len);
+		printf("copy_to_bytes(%p, 0x%" PRIx64 ", \"%.20s\", %3" PRIu64 ") : %d\n",
 				bytes, addr, s, len, r);
 		return 0;
 	}
@@ -171,14 +175,14 @@ int copy_from_bytes_main(int argc, char *argv[]){
 			return 1;
 		}
 		buf = alloca(size);
-		r = copy_from_bytes(bytes, addr, buf, size);
-		printf("copy_from_bytes(%p, 0x%llx, %p, %d) : %d\n",
+		r = copy_from_bytes(bytes, addr, (uint8_t *)buf, size);
+		printf("copy_from_bytes(%p, 0x%" PRIx64 ", %p, %zu) : %d\n",
 				bytes, addr, buf, size, r);
 		if(r < 0){
 			return 1;
 		}
 		for(i = 0; i < size; i+= 16){
-			printf("\t%llx:  ", addr + i);
+			printf("\t%" PRIx64 ":  ", addr + i);
 			for(j = 0; j < 16 && j + i < size; j++){
 				printf(" %02x", buf[i+j]);
 			}
@@ -340,8 +344,135 @@ int unknown_main(int argc, char *argv[]){
 	return 0;
 }
 
+int get_main(int argc, char *argv[]){
+	char *usage = "[db|dw|dd|dq] [addr]";
+	char *name;
+	char *type;
+	uint64_t addr;
+	int n;
+	int r;
 
-struct command commands[] = {
+	uint8_t B;
+	uint16_t W;
+	uint32_t D;
+	uint64_t Q;
+
+	n = unpack_args(argc, argv, usage, "ssQ", &name, &type, &addr);
+	if(n != 3){
+		return 1;
+	}
+
+	if(strcmp(type, "db") == 0){
+		r = bytes_get_byte(bytes, addr, &B);
+		if(r){
+			goto fail;
+		}
+		printf("0x%02x\n", B);
+	} else if(strcmp(type, "dw") == 0){
+		r = bytes_get_word(bytes, addr, &W);
+		if(r){
+			goto fail;
+		}
+		printf("0x%04x\n", W);
+
+	} else if(strcmp(type, "dd") == 0){
+		r = bytes_get_dword(bytes, addr, &D);
+		if(r){
+			goto fail;
+		}
+		printf("0x%08x\n", D);
+
+	} else if(strcmp(type, "dq") == 0){
+		r = bytes_get_qword(bytes, addr, &Q);
+		if(r){
+			goto fail;
+		}
+		printf("0x%016" PRIx64 "\n", Q);
+
+	} else {
+		printf("invalid type: %s\n", type);
+		return 1;
+	}
+
+	return 0;
+fail:
+	printf("Failed: %d\n", r);
+	return 1;
+}
+
+int put_main(int argc, char *argv[]){
+	char *usage = "[db|dw|dd|dq] [addr] [value]";
+	char *name;
+	char *type;
+	uint64_t addr;
+	uint64_t value;
+	int n;
+	int r;
+
+	uint8_t B;
+	uint16_t W;
+	uint32_t D;
+	uint64_t Q;
+
+	n = unpack_args(argc, argv, usage, "ssQQ", &name, &type, &addr, &value);
+	printf("Value: %" PRIx64 "\n", value);
+	if(n != 4){
+		return 1;
+	}
+
+	if(strcmp(type, "db") == 0){
+		if(value > 0xFF){
+			printf("invalid value for byte: 0x%016" PRIx64 "\n", value);
+			goto fail;
+		}
+		B = value;
+		r = bytes_put_byte(bytes, addr, B);
+		if(r){
+			goto fail;
+		}
+	} else if(strcmp(type, "dw") == 0){
+		if(value > 0xFFFF){
+			printf("invalid value for word: 0x%016" PRIx64 "\n", value);
+			goto fail;
+		}
+		W = value;
+		r = bytes_put_word(bytes, addr, W);
+		if(r){
+			goto fail;
+		}
+	} else if(strcmp(type, "dd") == 0){
+		if(value > 0xFFFFFFFF){
+			printf("invalid value for dword: 0x%016" PRIx64 "\n", value);
+			goto fail;
+		}
+		D = value;
+		r = bytes_put_dword(bytes, addr, D);
+		if(r){
+			goto fail;
+		}
+	} else if(strcmp(type, "dq") == 0){
+		Q = value;
+		printf("bytes_put_qword(%p, 0x%" PRIx64 ", 0x%" PRIx64 ") : ",
+				bytes, addr, Q);
+		fflush(stdout);
+		r = bytes_put_qword(bytes, addr, Q);
+		printf("%d\n", r);
+		if(r){
+			goto fail;
+		}
+
+	} else {
+		printf("invalid type: %s\n", type);
+		return 1;
+	}
+
+	return 0;
+fail:
+	printf("Failed: %d\n", r);
+	return 1;
+}
+
+const struct command commands[] = {
 	{"help", help_main, "show this text"},
 	{"exit", exit_main, "go back to DOS"},
 	{"quit", exit_main, "go back to DOS"},
@@ -355,6 +486,8 @@ struct command commands[] = {
 	{"code", code_main, "mark region as code"},
 	{"data", data_main, "mark region as data"},
 	{"unknown", unknown_main, "mark region as unknown"},
+	{"get", get_main, "read a primative type from bytes"},
+	{"put", put_main, "write a primative type from bytes"},
 	{NULL, NULL, NULL},
 };
 

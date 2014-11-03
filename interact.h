@@ -14,6 +14,6 @@ struct command {
 };
 
 int
-interact(struct command *cmds, char *prompt);
+interact(const struct command *cmds, char *prompt);
 
 #endif

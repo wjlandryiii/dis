@@ -14,7 +14,7 @@
 
 
 int interact_done = 0;
-static struct command *commands;
+const static struct command *commands;
 
 
 char *skipwhite(char *s){
@@ -70,9 +70,9 @@ tokenize_line(char *line, int argc, char **argv){
 }
 
 
-struct command *
-find_command(struct command *cmds, char *name){
-	struct command *cmd;
+const struct command *
+find_command(const struct command *cmds, char *name){
+	const struct command *cmd;
 
 	cmd = cmds;
 	while(cmd->c_name){
@@ -86,11 +86,10 @@ find_command(struct command *cmds, char *name){
 
 
 static int
-execute_line(struct command *cmds, char *line){
-	int i;
+execute_line(const struct command *cmds, char *line){
 	int argc;
 	char **argv;
-	struct command *cmd;
+	const struct command *cmd;
 
 	argc = count_tokens(line);
 	if(argc == 0){
@@ -140,8 +139,6 @@ char *cmd_generator(const char *text, int state){
 }
 
 char **cmd_completion(const char *text, int start, int end){
-	char **matches;
-
 	if(start == 0){
 		return rl_completion_matches(text, cmd_generator);
 	} else {
@@ -151,7 +148,7 @@ char **cmd_completion(const char *text, int start, int end){
 
 
 int
-interact(struct command *cmds, char *prompt){
+interact(const struct command *cmds, char *prompt){
 	char *line;
 	char *s;
 
