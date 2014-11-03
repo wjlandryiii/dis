@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #include "lines.h"
 
@@ -27,14 +29,13 @@ void make_file(FILE *f){
 	struct lines *lines;
 	int i;
 	int r;
-	char buf[1024];
 
 	store = new_stringstore();
 	map = new_mapping();
 	lines = new_lines(store, map);
 
 	for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
-		printf("store %08llx => %s\n", data[i].addr, data[i].line);
+		printf("store %08" PRIx64 " => %s\n", data[i].addr, data[i].line);
 		r = set_line(lines, data[i].addr, data[i].line);
 		if(r != 0){
 			fprintf(stderr, "set_line()\n");
@@ -68,7 +69,7 @@ void load_file(FILE *f){
 			fprintf(stderr, "get_line()\n");
 			exit(1);
 		}
-		printf("%08x: %s\n", data[i].addr, buf);
+		printf("%08" PRIx64 ": %s\n", data[i].addr, buf);
 	}
 	free_lines(lines);
 	free_mapping(map);

@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #include "stringstore.h"
 
@@ -72,7 +74,7 @@ int insert_node(struct stringstore *store, struct stringnode *node){
 }
 
 static int
-insert_string(struct stringstore *store, int32_t id, uint8_t *s){
+insert_string(struct stringstore *store, int32_t id, char *s){
 	struct stringnode *node;
 
 	node = new_stringnode(id, s);
@@ -148,7 +150,7 @@ int
 update_string(struct stringstore *store, int32_t id, char *s){
 	struct stringnode *node;
 	size_t len;
-	uint8_t *buf;
+	char *buf;
 
 	node = get_node_by_id(store, id);
 	if(node){
@@ -226,7 +228,7 @@ unpack_stringstore(FILE *f){
 	int r;
 	int32_t id;
 	int32_t size;
-	uint8_t *buf;
+	char *buf;
 
 	store = new_stringstore();
 	r = fread(&(store->ss_nextid), sizeof(store->ss_nextid), 1, f);

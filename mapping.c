@@ -65,7 +65,6 @@ insert_mapnode(struct mapping *map, struct mapnode *node){
 int
 set_mapping(struct mapping *map, uint64_t key, uint64_t value){
 	struct mapnode *node;
-	int32_t sid;
 
 	node = find_mapnode(map, key);
 	if(node){

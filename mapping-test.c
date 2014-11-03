@@ -3,6 +3,8 @@
  */
 
 #include <stdio.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #include "mapping.h"
 
@@ -27,16 +29,16 @@ void load_file(FILE *f){
 
 	map = unpack_mapping(f);
 	lookup_mapping(map, 0x08040000, &value);
-	printf("%llu\n", value);
+	printf("%" PRIx64 "\n", value);
 
 	lookup_mapping(map, 0x08040001, &value);
-	printf("%llu\n", value);
+	printf("%" PRIx64 "\n", value);
 
 	lookup_mapping(map, 0x08040002, &value);
-	printf("%llu\n", value);
+	printf("%" PRIx64 "\n", value);
 	
 	lookup_mapping(map, 0x08040003, &value);
-	printf("%llu\n", value);
+	printf("%" PRIx64 "\n", value);
 
 	free_mapping(map);
 }

@@ -5,7 +5,7 @@
 
 
 void make_file(FILE *f){
-	uint8_t buf[1024];
+	char buf[1024];
 	struct stringstore *store;
 	uint32_t id_A;
 	uint32_t id_B;
@@ -41,7 +41,7 @@ void make_file(FILE *f){
 }
 
 void load_file(FILE *f){
-	uint8_t buf[1024];
+	char buf[1024];
 	struct stringstore *store;
 	uint32_t id_A = 1;
 	uint32_t id_B = 2;

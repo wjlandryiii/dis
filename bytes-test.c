@@ -12,7 +12,7 @@ trace_enable_bytes(struct bytes *bytes, uint64_t first, uint64_t last){
 	int r;
 
 	if(trace){
-		printf("enable_bytes(%p, %3d, %3d)", bytes, first, last);
+		printf("enable_bytes(%p, %" PRIu64" , %" PRIu64 ")", bytes, first, last);
 		fflush(stdout);
 	}
 	r = enable_bytes(bytes, first, last);
@@ -34,7 +34,7 @@ trace_first_chunk(struct bytes *bytes){
 	
 	if(trace){
 		if(chunk != NULL){
-			printf(": %p {bc_first: %3d, bc_last: %3d}\n",
+			printf(": %p {bc_first: %" PRIu64 ", bc_last: %" PRIu64 "}\n",
 					chunk,chunk->bc_first, chunk->bc_last);
 		} else {
 			printf(": %p\n", chunk);
@@ -54,7 +54,7 @@ trace_next_chunk(struct bytechunk *chunk){
 
 	if(trace){
 		if(chunk != NULL){
-			printf(": %p {bc_first: %3d, bc_last: %3d}\n",
+			printf(": %p {bc_first: %" PRIu64 ", bc_last: %" PRIu64 "}\n",
 					chunk,chunk->bc_first, chunk->bc_last);
 		} else {
 			printf(": %p\n", chunk);
