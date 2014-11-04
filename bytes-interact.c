@@ -415,7 +415,6 @@ int put_main(int argc, char *argv[]){
 	uint64_t Q;
 
 	n = unpack_args(argc, argv, usage, "ssQQ", &name, &type, &addr, &value);
-	printf("Value: %" PRIx64 "\n", value);
 	if(n != 4){
 		return 1;
 	}
@@ -472,6 +471,127 @@ fail:
 	return 1;
 }
 
+int head_main(int argc, char *argv[]){
+	char *usage = "[addr]";
+	char *name;
+	uint64_t addr;
+	uint64_t head;
+	int r;
+	int n;
+
+	n = unpack_args(argc, argv, usage, "sQ", &name, &addr);
+	if(n != 2){
+		return 1;
+	}
+
+	r = item_head(bytes, addr, &head);
+	if(!r){
+		printf("head: 0x%" PRIx64 "\n", head);
+		return 0;
+	} else {
+		printf("error: %d\n", r);
+		return 1;
+	}
+}
+
+int end_main(int argc, char *argv[]){
+	char *usage = "[addr]";
+	char *name;
+	uint64_t addr;
+	uint64_t end;
+	int r;
+	int n;
+
+	n = unpack_args(argc, argv, usage, "sQ", &name, &addr);
+	if(n != 2){
+		return 1;
+	}
+	
+	r = item_end(bytes, addr, &end);
+	if(!r){
+		printf("head: 0x%" PRIx64 "\n", end);
+		return 0;
+	} else {
+		printf("error: %d\n", r);
+		return 1;
+	}
+}
+
+int getdt_main(int argc, char *argv[]){
+	char *usage = "[addr]";
+	char *name;
+	uint64_t addr;
+	uint32_t datatype;
+	int n;
+	int r;
+
+	n = unpack_args(argc, argv, usage, "sQ", &name, &addr);
+	if(n != 2){
+		return 1;
+	}
+
+	r = get_bytes_datatype(bytes, addr, &datatype);
+	if(r){
+		printf("error: %d\n", r);
+		return 1;
+	}
+	if(datatype == DATATYPE_BYTE){
+		printf("BYTE\n");
+	} else if(datatype == DATATYPE_WORD){
+		printf("WORD\n");
+	} else if(datatype == DATATYPE_DWORD){
+		printf("DWORD\n");
+	} else if(datatype == DATATYPE_QWORD){
+		printf("QWORD\n");
+	} else {
+		printf("unknown datatype: %" PRIu32 "\n", datatype);
+	}
+	return 0;
+}
+
+int setdt_main(int argc, char *argv[]){
+	char *usage = "[addr] [db|dw|dd|dq]";
+	char *name;
+	uint64_t addr;
+	char *type;
+	int n;
+	int r;
+
+	n = unpack_args(argc, argv, usage, "sQs", &name, &addr, &type);
+	if(n != 3){
+		return 1;
+	}
+
+	if(strcmp(type, "db") == 0){
+		r = set_bytes_datatype_byte(bytes, addr);
+		if(r){
+			goto fail;
+		}
+	} else if(strcmp(type, "dw") == 0){
+		r = set_bytes_datatype_word(bytes, addr);
+		if(r){
+			goto fail;
+		}
+	} else if(strcmp(type, "dd") == 0){
+		r = set_bytes_datatype_dword(bytes, addr);
+		if(r){
+			goto fail;
+		}
+	} else if(strcmp(type, "dq") == 0){
+		r = set_bytes_datatype_qword(bytes, addr);
+		if(r){
+			goto fail;
+		}
+	} else {
+		printf("Unknown type: %s\n", type);
+		return 1;
+	}
+	return 0;
+fail:
+	printf("error: %d\n", r);
+	return 1;
+}
+
 const struct command commands[] = {
 	{"help", help_main, "show this text"},
 	{"exit", exit_main, "go back to DOS"},
@@ -488,6 +608,10 @@ const struct command commands[] = {
 	{"unknown", unknown_main, "mark region as unknown"},
 	{"get", get_main, "read a primative type from bytes"},
 	{"put", put_main, "write a primative type from bytes"},
+	{"head", head_main, "find the first address of an item"},
+	{"end", end_main, "find the end of an item"},
+	{"getdt", getdt_main, "get the datatype a data item"},
+	{"setdt", setdt_main, "make a data item and set the datatype"},
 	{NULL, NULL, NULL},
 };
 

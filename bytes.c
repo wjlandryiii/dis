@@ -297,6 +297,17 @@ find_chunk_containing_addr(struct bytes *bytes, uint64_t addr){
 }
 
 
+static int
+chunk_flags_at_addr(struct bytechunk *chunk, uint64_t addr, uint32_t *flags){
+	int offset;
+
+	offset = addr - chunk->bc_first;
+	if(flags){
+		*flags = chunk->bc_bytes[offset];
+	}
+	return 0;
+}
+
 
 static int
 real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr,
@@ -497,6 +508,83 @@ bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value){
 	}
 }
 
+/*********/
+/********/
+
+static int
+chunk_item_head(struct bytechunk *chunk, uint64_t addr, uint64_t *head_out){
+	uint32_t flags;
+	int start;
+	int i;
+
+	start = addr - chunk->bc_first;
+
+	flags = chunk->bc_bytes[start];
+
+	if(is_class_unknown(flags)){
+		return -1;
+	}
+
+	for(i = start; i >= 0; i--){
+		flags = chunk->bc_bytes[i];
+		if(!is_class_tail(flags)){
+			if(head_out){
+				*head_out = chunk->bc_first + i;
+				return 0;
+			}
+		}
+	}
+	return -1;
+}
+
+int
+item_head(struct bytes *bytes, uint64_t addr, uint64_t *head_out){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_item_head(chunk, addr, head_out);		
+	} else {
+		return -1;
+	}
+}
+
+static int
+chunk_item_end(struct bytechunk *chunk, uint64_t addr, uint64_t *end_out){
+	uint32_t flags;
+	int start;
+	int end;
+	int i;
+
+	start = addr - chunk->bc_first;
+	end = (chunk->bc_last - chunk->bc_first) + 1;
+
+	for(i = start + 1; i < end; i++){
+		flags = chunk->bc_bytes[i];
+		if(!is_class_tail(flags)){
+			if(end_out){
+				*end_out = (chunk->bc_first + i) - 1;
+				return 0;
+			}
+		}
+	}
+	if(end_out){
+		*end_out = (chunk->bc_first + i) - 1;
+	}
+	return 0;
+}
+
+int
+item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_item_end(chunk, addr, end_out);		
+	} else {
+		return -1;
+	}
+}
 
 static int
 is_range_in_chunk(struct bytechunk *chunk, uint64_t first, uint64_t last){
@@ -546,6 +634,45 @@ set_chunk_range_class_unknown(struct bytechunk *chunk,
 	return 0;
 }
 
+
+int
+set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last){
+	struct bytechunk *chunk;
+	uint32_t flags;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, first);
+	if(chunk){
+		r = chunk_flags_at_addr(chunk, first, &flags);
+		if(r){
+			return -1;
+		}
+		if(is_class_tail(flags)){
+			r = chunk_item_head(chunk, first, &first);
+			if(r){
+				return -1;
+			}
+		}
+
+		r = chunk_flags_at_addr(chunk, last, &flags);
+		if(is_class_tail(flags)){
+			r = chunk_item_end(chunk, last, &last);
+			if(r){
+				return -1;
+			}
+		}
+
+		if(is_range_in_chunk(chunk, first, last)){
+			return set_chunk_range_class_unknown(chunk, first, last);
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+
 static int
 set_chunk_range_class_code(struct bytechunk *chunk,
 		uint64_t first, uint64_t last){
@@ -568,6 +695,23 @@ set_chunk_range_class_code(struct bytechunk *chunk,
 	}
 	return 0;
 }
+
+int
+set_class_code(struct bytes *bytes, uint64_t first, uint64_t last){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, first);
+	if(chunk){
+		if(is_chunk_range_class_unknown(chunk, first, last)){
+			return set_chunk_range_class_code(chunk, first, last);
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
 
 static int
 set_chunk_range_class_data(struct bytechunk *chunk,
@@ -592,40 +736,6 @@ set_chunk_range_class_data(struct bytechunk *chunk,
 	return 0;
 }
 
-
-int
-set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last){
-	struct bytechunk *chunk;
-
-	chunk = find_chunk_containing_addr(bytes, first);
-	if(chunk){
-		if(is_range_in_chunk(chunk, first, last)){
-			return set_chunk_range_class_unknown(chunk, first, last);
-		} else {
-			return -1;
-		}
-	} else {
-		return -1;
-	}
-}
-
-
-int
-set_class_code(struct bytes *bytes, uint64_t first, uint64_t last){
-	struct bytechunk *chunk;
-
-	chunk = find_chunk_containing_addr(bytes, first);
-	if(chunk){
-		if(is_chunk_range_class_unknown(chunk, first, last)){
-			return set_chunk_range_class_code(chunk, first, last);
-		} else {
-			return -1;
-		}
-	} else {
-		return -1;
-	}
-}
-
 int
 set_class_data(struct bytes *bytes, uint64_t first, uint64_t last){
 	struct bytechunk *chunk;
@@ -642,6 +752,131 @@ set_class_data(struct bytes *bytes, uint64_t first, uint64_t last){
 	}
 }
 
+/*********
+ * *******/
+
+int
+get_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t *datatype_out){
+	struct bytechunk *chunk;
+	uint32_t flags;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		if(chunk_flags_at_addr(chunk, addr, &flags)){
+			return -1;
+		}
+		if(is_class_data(flags)){
+			if(datatype_out){
+				*datatype_out = get_datatype_field(flags);
+			}
+			return 0;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+static int
+set_chunk_datatype_field(struct bytechunk *chunk, uint64_t addr, uint32_t datatype){
+	uint32_t flags;
+	int offset;
+
+	offset = chunk->bc_first - addr;
+	flags = chunk->bc_bytes[offset];
+	flags = set_datatype_field(flags, datatype);
+	chunk->bc_bytes[offset] = flags;
+	return 0;
+}
+
+int
+set_bytes_datatype_byte(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		if(is_chunk_range_class_unknown(chunk, addr, addr)){
+			r = set_chunk_range_class_data(chunk, addr, addr);
+			if(r){
+				return -1;
+			}
+			set_chunk_datatype_field(chunk, addr, DATATYPE_BYTE);
+			return 0;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+int
+set_bytes_datatype_word(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		if(is_chunk_range_class_unknown(chunk, addr, addr + 1)){
+			r = set_chunk_range_class_data(chunk, addr, addr + 1);
+			if(r){
+				return -1;
+			}
+			set_chunk_datatype_field(chunk, addr, DATATYPE_WORD);
+			return 0;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+int
+set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		if(is_chunk_range_class_unknown(chunk, addr, addr + 3)){
+			r = set_chunk_range_class_data(chunk, addr, addr + 3);
+			if(r){
+				return -1;
+			}
+			set_chunk_datatype_field(chunk, addr, DATATYPE_DWORD);
+			return 0;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+int
+set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+	int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		if(is_chunk_range_class_unknown(chunk, addr, addr + 7)){
+			r = set_chunk_range_class_data(chunk, addr, addr + 7);
+			if(r){
+				return -1;
+			}
+			set_chunk_datatype_field(chunk, addr, DATATYPE_QWORD);
+			return 0;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
 
 /*****************************************************************************/
 

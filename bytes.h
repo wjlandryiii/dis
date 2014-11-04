@@ -164,14 +164,26 @@ is_class_tail(uint32_t flags){
 	return IS_CLASS_TAIL(flags);
 }
 
+
+int item_head(struct bytes *bytes, uint64_t addr, uint64_t *head_out);
+int item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out);
+
+
+/* TODO
+int first_item(struct bytes *bytes, uint64_t *addr);
+int next_item(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
+int prev_item(struct bytes *bytes, uint64_t addr, uint64_t *prev_out);
+int next_not_tail(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
+*/
+
 int
-set_class_data(struct bytes *bytes, uint64_t first, uint64_t last);
+set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
 
 int
 set_class_code(struct bytes *bytes, uint64_t first, uint64_t last);
 
 int
-set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
+set_class_data(struct bytes *bytes, uint64_t first, uint64_t last);
 
 #define DATATYPE_MASK     0x000F0000
 #define DATATYPE_BYTE     0x00000000
@@ -217,6 +229,20 @@ is_datatype_qword(uint32_t flags){
 	return get_datatype_field(flags) == DATATYPE_QWORD;
 }
 
+int
+get_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t *datatype_out);
+
+int
+set_bytes_datatype_byte(struct bytes *bytes, uint64_t addr);
+
+int
+set_bytes_datatype_word(struct bytes *bytes, uint64_t addr);
+
+int
+set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr);
+
+int
+set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr);
 
 /*****************************************************************************/
 
