@@ -5,3 +5,7 @@
 *.db
 *.pack
 data/*
+dis
+lines-test
+mapping-test
+stringstore-test

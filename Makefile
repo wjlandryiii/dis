@@ -9,6 +9,31 @@ all:	dis \
 	bytes-interact.exe \
 	interact-test.exe
 
+
+tests:	workspace-test.exe \
+	loader-test.exe
+
+loader-test.exe: loader-test.o loader.o workspace.o testrunner.o bytes.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+loader-test.o: loader-test.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+workspace-test.exe: workspace-test.o workspace.o testrunner.o bytes.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+testrunner.o: testrunner.c testrunner.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+workspace-test.o: workspace-test.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+workspace.o: workspace.c workspace.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+loader.o: loader.c loader-raw.c loader-elf.c loader.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 bytes-interact.exe: bytes-interact.o interact.o bytes.o
 	$(CC) $(CFLAGS) -o $@ $^
 

@@ -310,6 +310,39 @@ chunk_flags_at_addr(struct bytechunk *chunk, uint64_t addr, uint32_t *flags){
 
 
 static int
+chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last){
+	uint32_t flags;
+	int start;
+	int stop;
+	int i;
+
+	start = first - chunk->bc_first;
+	stop = (last - chunk->bc_last) + 1;
+
+	for(i = start; i < stop; i++){
+		flags = chunk->bc_bytes[i];
+		flags = set_byte_field(flags, c);
+		flags = set_value_field(flags, VALUE_VALID);
+		chunk->bc_bytes[i] = flags;
+	}
+	return 0;
+}
+
+
+int
+set_bytes(struct bytes *bytes, uint8_t c, uint64_t first, uint64_t last){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, first);
+	if(chunk){
+		return chunk_set_bytes(chunk, c, first, last);
+	} else {
+		return -1;
+	}
+}
+
+
+static int
 real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr,
 		uint8_t *buf, size_t size){
 	int offset;

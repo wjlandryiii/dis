@@ -87,6 +87,8 @@ is_value_valid(uint32_t flags){
 	return IS_VALUE_VALID(flags);
 }
 
+int
+set_bytes(struct bytes *bytes, uint8_t c, uint64_t first, uint64_t last);
 
 int
 copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
