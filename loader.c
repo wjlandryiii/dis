@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include "loader.h"
+#include "bytes.h"
 
 struct loader loaders[] = {
 	{"elf", can_load_file_elf, load_file_elf},

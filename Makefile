@@ -11,7 +11,17 @@ all:	dis \
 
 
 tests:	workspace-test.exe \
-	loader-test.exe
+	loader-test.exe \
+	disassembler-test.exe
+
+disassembler-test.exe: disassembler-test.o disassembler.o testrunner.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+disassembler-test.o: disassembler-test.c disassembler.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+disassembler.o: disassembler.c disassembler.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 loader-test.exe: loader-test.o loader.o workspace.o testrunner.o bytes.o
 	$(CC) $(CFLAGS) -o $@ $^

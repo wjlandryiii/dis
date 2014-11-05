@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "workspace.h"
+#include "bytes.h"
 
 struct workspace *
 new_workspace(){
@@ -25,4 +26,9 @@ free_workspace(struct workspace *ws){
 		free_bytes(ws->ws_bytes);
 	}
 	free(ws);
+}
+
+int initialize_machine(struct workspace *ws, int machine){
+	ws->ws_machine = machine;
+	return 0;
 }

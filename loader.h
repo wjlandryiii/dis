@@ -6,6 +6,7 @@
 #define LOADER_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include "workspace.h"
 

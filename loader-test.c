@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "workspace.h"
+#include "bytes.h"
 #include "loader.h"
 #include "testrunner.h"
 #include "elf.h"
