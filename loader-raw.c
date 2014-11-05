@@ -27,6 +27,5 @@ load_file_raw(struct workspace *ws, FILE *f){
 	first = 0x10000;
 	last = (first + size) - 1;
 
-	loader_load_segment(ws, f, 0, size, first, last, 0);
-	return 0;
+	return loader_load_segment(ws, f, 0, size, first, last, 0);
 }

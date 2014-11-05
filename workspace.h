@@ -14,5 +14,4 @@ struct workspace {
 struct workspace *new_workspace(void);
 void free_workspace(struct workspace *ws);
 
-
 #endif
