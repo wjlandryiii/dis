@@ -4,68 +4,42 @@
 #include <inttypes.h>
 
 #include "bytes.h"
+#include "testrunner.h"
 
-int trace = 1;
+static int
+test_newfree(void){
+	struct bytes *bytes;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	free_bytes(bytes);
+	return 0;
+}
 
 int
-trace_enable_bytes(struct bytes *bytes, uint64_t first, uint64_t last){
+test_enable_bytes(void){
+	struct bytes *bytes;
+	struct bytechunk *chunk;
 	int r;
 
-	if(trace){
-		printf("enable_bytes(%p, %" PRIu64" , %" PRIu64 ")", bytes, first, last);
-		fflush(stdout);
-	}
-	r = enable_bytes(bytes, first, last);
-	if(trace){
-		printf(": %d\n", r);
-	}
-	return r;
-}
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
 
-struct bytechunk *
-trace_first_chunk(struct bytes *bytes){
-	struct bytechunk *chunk;
+	r = enable_bytes(bytes, 100, 200);
+	FAIL_IF(r != 0);
 
-	if(trace){
-		printf("first_chunk(%p)", bytes);
-		fflush(stdout);
-	}
 	chunk = first_chunk(bytes);
+	FAIL_IF(chunk == NULL);
+	FAIL_IF(chunk->bc_first != 100);
+	FAIL_IF(chunk->bc_last != 200);
+	FAIL_IF(chunk->bc_bytes == NULL);
 	
-	if(trace){
-		if(chunk != NULL){
-			printf(": %p {bc_first: %" PRIu64 ", bc_last: %" PRIu64 "}\n",
-					chunk,chunk->bc_first, chunk->bc_last);
-		} else {
-			printf(": %p\n", chunk);
-		}
-	}
-	return chunk;
+	free_bytes(bytes);
+	return 0;
 }
 
-struct bytechunk *
-trace_next_chunk(struct bytechunk *chunk){
-	if(trace){
-		printf("next_chunk(%p)", chunk);
-		fflush(stdout);
-	}
-
-	chunk = next_chunk(chunk);
-
-	if(trace){
-		if(chunk != NULL){
-			printf(": %p {bc_first: %" PRIu64 ", bc_last: %" PRIu64 "}\n",
-					chunk,chunk->bc_first, chunk->bc_last);
-		} else {
-			printf(": %p\n", chunk);
-		}
-	}
-	return chunk;
-}
-
-
-
-int test_enable(){
+int
+test_enable_bytes_forward(){
 	struct bytes *bytes;
 	struct bytechunk *c;
 	int i;
@@ -77,25 +51,25 @@ int test_enable(){
 	for(i = 0; i < 5; i++){
 		first = i*5;
 		last = first + 2;
-		trace_enable_bytes(bytes, first, last);
+		enable_bytes(bytes, first, last);
 	}
 	
-	c = trace_first_chunk(bytes);
+	c = first_chunk(bytes);
 	for(i = 0; i < 5; i++){
 		first = i*5;
 		last = first + 2;
 
-		assert(c != NULL);
-		assert(c->bc_first == first);
-		assert(c->bc_last == last);
-		c = trace_next_chunk(c);
+		FAIL_IF(c == NULL);
+		FAIL_IF(c->bc_first != first);
+		FAIL_IF(c->bc_last != last);
+		c = next_chunk(c);
 	}
-	assert(c == NULL);
+	FAIL_IF(c != NULL);
 	free_bytes(bytes);
 	return 0;
 }
 
-int test_enable_reverse(){
+int test_enable_bytes_reverse(){
 	struct bytes *bytes;
 	struct bytechunk *c;
 	int i;
@@ -107,25 +81,26 @@ int test_enable_reverse(){
 	for(i = 0; i < 5; i++){
 		first = 20-i*5;
 		last = first+2;
-		trace_enable_bytes(bytes, first, last);
+		enable_bytes(bytes, first, last);
 	}
 
-	c = trace_first_chunk(bytes);
+	c = first_chunk(bytes);
 	for(i = 0; i < 5; i++){
 		first = i*5;
 		last = first+2;
 
-		assert(c != NULL);
-		assert(c->bc_first == first);
-		assert(c->bc_last == last);
-		c = trace_next_chunk(c);
+		FAIL_IF(c == NULL);
+		FAIL_IF(c->bc_first != first);
+		FAIL_IF(c->bc_last != last);
+		c = next_chunk(c);
 	}
-	assert(c == NULL);
+	FAIL_IF(c != NULL);
 	free_bytes(bytes);
 	return 0;
 }
 
-int test_enable_middle(){
+static int
+test_enable_bytes_middle(void){
 	struct bytes *bytes;
 	struct bytechunk *c;
 	int i;
@@ -137,26 +112,27 @@ int test_enable_middle(){
 	for(i = 0; i < 10; i++){
 		first = i < 5 ? i*5*2 : (i-5)*5*2+5;
 		last = first + 2;
-		trace_enable_bytes(bytes, first, last);
+		enable_bytes(bytes, first, last);
 	}
 	
-	c = trace_first_chunk(bytes);
+	c = first_chunk(bytes);
 	for(i = 0; i < 10; i++){
 		first = i*5;
 		last = first+2;
 
-		assert(c != NULL);
-		assert(c->bc_first == first);
-		assert(c->bc_last == last);
-		c = trace_next_chunk(c);
+		FAIL_IF(c == NULL);
+		FAIL_IF(c->bc_first != first);
+		FAIL_IF(c->bc_last != last);
+		c = next_chunk(c);
 	}
-	assert(c == NULL);
+	FAIL_IF(c != NULL);
 	free_bytes(bytes);
 	return 0;
 }
 
 
-int test_expand_up(void){
+static int
+test_enable_bytes_expand_up(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint64_t first;
@@ -168,20 +144,21 @@ int test_expand_up(void){
 	for(i = 0; i < 10; i++){
 		first = i*5;
 		last = first + 4;
-		trace_enable_bytes(bytes, first, last);
+		enable_bytes(bytes, first, last);
 	}
 
-	chunk = trace_first_chunk(bytes);
-	assert(chunk != NULL);
-	assert(chunk->bc_first == 0);
-	assert(chunk->bc_last == 49);
-	chunk = trace_next_chunk(chunk);
-	assert(chunk == NULL);
+	chunk = first_chunk(bytes);
+	FAIL_IF(chunk == NULL);
+	FAIL_IF(chunk->bc_first != 0);
+	FAIL_IF(chunk->bc_last != 49);
+	chunk = next_chunk(chunk);
+	FAIL_IF(chunk != NULL);
 	free_bytes(bytes);
 	return 0;
 }
 
-int test_expand_down(void){
+static int
+test_enable_bytes_expand_down(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint64_t first;
@@ -193,20 +170,21 @@ int test_expand_down(void){
 	for(i = 0; i < 10; i++){
 		first = (9*5)-i*5;
 		last = first + 4;
-		trace_enable_bytes(bytes, first, last);
+		enable_bytes(bytes, first, last);
 	}
 
-	chunk = trace_first_chunk(bytes);
-	assert(chunk != NULL);
-	assert(chunk->bc_first == 0);
-	assert(chunk->bc_last == 49);
-	chunk = trace_next_chunk(chunk);
-	assert(chunk == NULL);
+	chunk = first_chunk(bytes);
+	FAIL_IF(chunk == NULL);
+	FAIL_IF(chunk->bc_first != 0);
+	FAIL_IF(chunk->bc_last != 49);
+	chunk = next_chunk(chunk);
+	FAIL_IF(chunk != NULL);
 	free_bytes(bytes);
 	return 0;
 }
 
-int test_merge(){
+static int
+test_enable_bytes_merge(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint64_t first;
@@ -218,34 +196,32 @@ int test_merge(){
 	for(i = 0; i < 10; i++){
 		first = i < 5 ? i*5*2 : (i-5)*5*2+5;
 		last = first + 4;
-		trace_enable_bytes(bytes, first, last);
+		enable_bytes(bytes, first, last);
 	}
 	
-	chunk = trace_first_chunk(bytes);
-	assert(chunk != NULL);
-	assert(chunk->bc_first == 0);
-	assert(chunk->bc_last == 49);
-	chunk = trace_next_chunk(chunk);
-	assert(chunk == NULL);
+	chunk = first_chunk(bytes);
+	FAIL_IF(chunk == NULL);
+	FAIL_IF(chunk->bc_first != 0);
+	FAIL_IF(chunk->bc_last != 49);
+	chunk = next_chunk(chunk);
+	FAIL_IF(chunk != NULL);
 	free_bytes(bytes);
 	return 0;
 }
 
-int main(int argc, char *argv[]){
-	int ret;
+static struct test tests[] = {
+	{"newfree", test_newfree},
+	{"enable_bytes", test_enable_bytes},
+	{"enable_bytes-forward", test_enable_bytes_forward},
+	{"enable_bytes-reverse", test_enable_bytes_reverse},
+	{"enable_bytes-middle", test_enable_bytes_middle},
+	{"enable_bytes-expand_up", test_enable_bytes_expand_up},
+	{"enable_bytes-expand_down", test_enable_bytes_expand_down},
+	{"enable_bytes-merge", test_enable_bytes_merge},
+	{NULL, NULL},
+};
 
-	ret = 0;
-	printf("test_enable():\n");
-	ret |= test_enable();
-	printf("\n\ntest_enable_reverse():\n");
-	ret |= test_enable_reverse();
-	printf("\n\ntest_enable_middle():\n");
-	ret |= test_enable_middle();
-	printf("\n\ntest_expand_up():\n");
-	ret |= test_expand_up();
-	printf("\n\ntest_expand_down():\n");
-	ret |= test_expand_down();
-	printf("\n\ntest_merge():\n");
-	ret |= test_merge();
-	return ret;
+void test_bytes_init(void) __attribute__ ((constructor));
+void test_bytes_init(void){
+	add_module_tests("bytes", tests);
 }

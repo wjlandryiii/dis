@@ -11,7 +11,8 @@ CORE_OBJS = bytes.o \
 core.a: $(CORE_OBJS)
 	ar rcs $@ $^
 
-TEST_OBJS = workspace-test.o \
+TEST_OBJS = bytes-test.o \
+	    workspace-test.o \
 	    disassembler-test.o \
 	    loader-test.o \
 

@@ -37,8 +37,13 @@ next_chunk(struct bytechunk *chunk);
 int
 enable_bytes(struct bytes *bytes, uint64_t first, uint64_t last);
 
+/* TODO
 int
 disable_bytes(struct bytes *bytes, uint64_t first, uint64_t last);
+*/
+
+int
+get_byte_flags(struct bytes *bytes, uint64_t addr, uint32_t *flags);
 
 
 
