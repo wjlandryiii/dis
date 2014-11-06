@@ -9,7 +9,8 @@
 #include "disassembler.h"
 #include "testrunner.h"
 
-int test_newfree(void){
+static int
+test_newfree(void){
 	struct disassembler *dis;
 
 	dis = new_disassembler(0);
@@ -18,7 +19,8 @@ int test_newfree(void){
 	return 0;
 }
 
-int test_disassemble_instruction_x86(void){
+static int
+test_disassemble_instruction_x86(void){
 	struct disassembler *dis;
 	uint8_t inst[8];
 	char line[512];
@@ -37,12 +39,13 @@ int test_disassemble_instruction_x86(void){
 	return 0;
 }
 
-struct test tests[] = {
+static struct test tests[] = {
 	{"newfree", test_newfree},
 	{"disassemble_instruction_x86", test_disassemble_instruction_x86},
 	{NULL, NULL},
 };
 
-int main(int argc, char *argv[]){
-	return run_tests(argc, argv, tests);
+void test_disassembler_init(void) __attribute__ ((constructor));
+void test_disassembler_init(void){
+	add_module_tests("disassembler", tests);
 }

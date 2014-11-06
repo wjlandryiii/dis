@@ -10,6 +10,8 @@ struct test {
 	int (*te_fn)(void);
 };
 
+void add_module_tests(char *module, struct test *tests);
+
 #define FAIL_IF(A) if(A){ fail_test(__FILE__, __LINE__); return -1; }
 
 void fail_test(char *file, int line);

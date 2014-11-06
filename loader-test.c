@@ -16,7 +16,8 @@ const char *linux_raw_filename = "data/helloworld.bin";
 const char *linux_elf32_filename = "data/helloworld.exe";
 
 
-int test_can_load_file_raw(void){
+static int
+test_can_load_file_raw(void){
 	FILE *f;
 	int can;
 
@@ -29,7 +30,8 @@ int test_can_load_file_raw(void){
 }
 
 
-int test_can_load_file_elf_pass(void){
+static int
+test_can_load_file_elf_pass(void){
 	FILE *f;
 	int can;
 
@@ -41,7 +43,8 @@ int test_can_load_file_elf_pass(void){
 	return 0;
 }
 
-int test_can_load_file_elf_fail(void){
+static int
+test_can_load_file_elf_fail(void){
 	FILE *f;
 	int can;
 
@@ -53,7 +56,8 @@ int test_can_load_file_elf_fail(void){
 	return 0;
 }
 
-int test_load_file_raw(void){
+static int
+test_load_file_raw(void){
 	FILE *f;
 	struct workspace *ws;
 	int r;
@@ -74,7 +78,8 @@ int test_load_file_raw(void){
 	return 0;
 }
 
-int test_load_file_elf(void){
+static int
+test_load_file_elf(void){
 	FILE *f;
 	struct workspace *ws;
 	int r;
@@ -95,7 +100,7 @@ int test_load_file_elf(void){
 	return 0;
 }
 
-struct test tests[] = {
+static struct test tests[] = {
 	{"can_load_file_raw", test_can_load_file_raw},
 	{"can_load_file_elf-pass", test_can_load_file_elf_pass},
 	{"can_load_file_elf-fail", test_can_load_file_elf_fail},
@@ -104,6 +109,7 @@ struct test tests[] = {
 	{NULL,NULL},
 };
 
-int main(int argc, char *argv[]){
-	return run_tests(argc, argv, tests);
+void test_loader_init(void) __attribute__ ((constructor));
+void test_loader_init(void){
+	add_module_tests("loader", tests);
 }

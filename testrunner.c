@@ -8,6 +8,28 @@
 
 #include "testrunner.h"
 
+struct moduletests {
+	char *mt_module;
+	struct test *mt_tests;
+};
+
+#define MAX_MODULES	20
+static struct moduletests moduletests[MAX_MODULES] = {{0}};
+static int nmodules = 0;
+
+void add_module_tests(char *module, struct test *tests){
+	if(nmodules >= MAX_MODULES){
+		fprintf(stderr, "MAX_MODULES REACHED\n");
+		fprintf(stderr, "EDIT MAX_MODULES DEFINE IN %s\n", __FILE__);
+		exit(1);
+	}
+	moduletests[nmodules].mt_module = module;
+	moduletests[nmodules].mt_tests = tests;
+	nmodules++;
+	printf("Added module: %s\n", module);
+}
+
+
 void fail_test(char *file, int line){
 	printf("[FAILED]\n");
 	printf("%s:%d\n", file, line);
@@ -93,4 +115,25 @@ int run_tests(int argc, char *argv[], struct test *tests){
 			}
 		}
 	}
+}
+
+int run_all_modules(void){
+	int i;
+	int r;
+
+	for(i = 0; i < nmodules; i++){
+		printf("\n\n");
+		printf("STARTING MODULE: %s\n", moduletests[i].mt_module);
+		printf("\n");
+		r = run_all(moduletests[i].mt_tests);
+		if(r){
+			return r;
+		}
+	}
+	return 0;
+}
+
+int main(int argc, char *argv[]){
+	run_all_modules();
+	return 0;
 }

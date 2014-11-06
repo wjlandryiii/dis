@@ -23,6 +23,7 @@ struct test tests[] = {
 	{NULL, NULL},
 };
 
-int main(int argc, char *argv[]){
-	return run_tests(argc, argv, tests);
+void test_workspace_init(void) __attribute__ ((constructor));
+void test_workspace_init(void){
+	add_module_tests("workspace", tests);
 }
