@@ -101,7 +101,7 @@ chunk_get_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t *fields_o
 }
 
 int
-chunk_set_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields){
+chunk_set_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields){
 	int i;
 
 	if(chunk_contains_addr(chunk, addr)){
@@ -203,7 +203,7 @@ fail:
 }
 
 int
-real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr,
+copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr,
 		uint8_t *buf, size_t size){
 	int offset;
 	uint32_t flags;
@@ -226,7 +226,7 @@ real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr,
 
 
 int
-real_copy_to_bytes(struct bytechunk *chunk, uint64_t addr,
+copy_bytes_to_chunk(struct bytechunk *chunk, uint64_t addr,
 		uint8_t *buf, size_t size){
 	int offset;
 	uint32_t flags;

@@ -174,7 +174,7 @@ set_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t fields){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_set_fields(chunk, addr, fields);
+		return chunk_set_byte_fields(chunk, addr, fields);
 	} else {
 		return -1;
 	}
@@ -204,7 +204,7 @@ copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
 		if(addr + size - 1 <= chunk->bc_last){
-			return real_copy_from_bytes(chunk, addr, buf, size);
+			return copy_bytes_from_chunk(chunk, addr, buf, size);
 		} else {
 			dis_errno = DER_BOUNDS;
 			return -1;
@@ -243,7 +243,7 @@ bytes_get_word(struct bytes *bytes, uint64_t addr, uint16_t *word_out){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		r = real_copy_from_bytes(chunk, addr, (void*) &word, sizeof(word));
+		r = copy_bytes_from_chunk(chunk, addr, (void*) &word, sizeof(word));
 		if(r){
 			return r;
 		}
@@ -264,7 +264,7 @@ bytes_get_dword(struct bytes *bytes, uint64_t addr, uint32_t *dword_out){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		r = real_copy_from_bytes(chunk, addr, (void*)&dword, sizeof(dword));
+		r = copy_bytes_from_chunk(chunk, addr, (void*)&dword, sizeof(dword));
 		if(r){
 			return r;
 		}
@@ -285,7 +285,7 @@ bytes_get_qword(struct bytes *bytes, uint64_t addr, uint64_t *qword_out){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		r = real_copy_from_bytes(chunk, addr, (void*) &qword, sizeof(qword));
+		r = copy_bytes_from_chunk(chunk, addr, (void*) &qword, sizeof(qword));
 		if(r){
 			return r;
 		}
@@ -306,7 +306,7 @@ copy_to_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
 		if(addr + size - 1 <= chunk->bc_last){
-			return real_copy_to_bytes(chunk, addr, buf, size);
+			return copy_bytes_to_chunk(chunk, addr, buf, size);
 		} else {
 			return -1;
 		}
@@ -321,7 +321,7 @@ bytes_put_byte(struct bytes *bytes, uint64_t addr, uint8_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return real_copy_to_bytes(chunk, addr, &value, sizeof(value));
+		return copy_bytes_to_chunk(chunk, addr, &value, sizeof(value));
 	} else {
 		return -1;
 	}
@@ -333,7 +333,7 @@ bytes_put_word(struct bytes *bytes, uint64_t addr, uint16_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return real_copy_to_bytes(chunk, addr, (void *)&value, sizeof(value));
+		return copy_bytes_to_chunk(chunk, addr, (void *)&value, sizeof(value));
 	} else {
 		return -1;
 	}
@@ -345,7 +345,7 @@ bytes_put_dword(struct bytes *bytes, uint64_t addr, uint32_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return real_copy_to_bytes(chunk, addr, (void *)&value, sizeof(value));
+		return copy_bytes_to_chunk(chunk, addr, (void *)&value, sizeof(value));
 	} else {
 		return -1;
 	}
@@ -357,7 +357,7 @@ bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return real_copy_to_bytes(chunk, addr, (void *)&value, sizeof(value));
+		return copy_bytes_to_chunk(chunk, addr, (void *)&value, sizeof(value));
 	} else {
 		return -1;
 	}

@@ -30,15 +30,15 @@ struct bytechunk *new_bytechunk(uint64_t first, uint64_t last);
 void free_bytechunk(struct bytechunk *chunk); 
 
 int chunk_get_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t *flags);
-int chunk_set_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields);
+int chunk_set_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields);
 
 int merge_chunks(struct bytechunk *before, struct bytechunk *after);
 int expand_chunk_up(struct bytechunk *chunk, uint64_t last); 
 int expand_chunk_down(struct bytechunk *chunk, uint64_t first);
 
 
-int real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
-int real_copy_to_bytes(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
+int copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
+int copy_bytes_to_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
 
 int chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last);
 

@@ -89,19 +89,19 @@ test_chunk_set_byte_fields(void){
 	chunk = new_bytechunk(10, 19);
 	FAIL_IF(chunk == NULL);
 
-	r = chunk_set_fields(chunk, 10, 0x12345678);
+	r = chunk_set_byte_fields(chunk, 10, 0x12345678);
 	FAIL_IF_ERR(r);
 	r = chunk_get_byte_fields(chunk, 10, &fields);
 	FAIL_IF_ERR(r);
 	FAIL_IF(fields != 0x12345678);
 
-	r = chunk_set_fields(chunk, 14, 0x44444444);
+	r = chunk_set_byte_fields(chunk, 14, 0x44444444);
 	FAIL_IF_ERR(r);
 	r = chunk_get_byte_fields(chunk, 14, &fields);
 	FAIL_IF_ERR(r);
 	FAIL_IF(fields != 0x44444444);
 
-	r = chunk_set_fields(chunk, 19, 0x87654321);
+	r = chunk_set_byte_fields(chunk, 19, 0x87654321);
 	FAIL_IF_ERR(r);
 	r = chunk_get_byte_fields(chunk, 19, &fields);
 	FAIL_IF_ERR(r);
@@ -121,22 +121,22 @@ test_chunk_set_byte_fields_bounds(void){
 	FAIL_IF(chunk == NULL);
 
 	dis_errno = DER_OK;
-	r = chunk_set_fields(chunk, 0, 0x12345678);
+	r = chunk_set_byte_fields(chunk, 0, 0x12345678);
 	FAIL_IF(r == 0);
 	FAIL_IF(dis_errno != DER_BOUNDS);
 
 	dis_errno = DER_OK;
-	r = chunk_set_fields(chunk, 9, 0x12345678);
+	r = chunk_set_byte_fields(chunk, 9, 0x12345678);
 	FAIL_IF(r == 0);
 	FAIL_IF(dis_errno != DER_BOUNDS);
 
 	dis_errno = DER_OK;
-	r = chunk_set_fields(chunk, 20, 0x12345678);
+	r = chunk_set_byte_fields(chunk, 20, 0x12345678);
 	FAIL_IF(r == 0);
 	FAIL_IF(dis_errno != DER_BOUNDS);
 	
 	dis_errno = DER_OK;
-	r = chunk_set_fields(chunk, 25, 0x12345678);
+	r = chunk_set_byte_fields(chunk, 25, 0x12345678);
 	FAIL_IF(r == 0);
 	FAIL_IF(dis_errno != DER_BOUNDS);
 
@@ -180,9 +180,9 @@ int test_expand_chunk_up(void){
 	chunk = new_bytechunk(10, 19);
 	FAIL_IF(chunk == NULL);
 
-	r = chunk_set_fields(chunk, 10, 0x10101010);
+	r = chunk_set_byte_fields(chunk, 10, 0x10101010);
 	FAIL_IF_ERR(r);
-	r = chunk_set_fields(chunk, 19, 0x19191919);
+	r = chunk_set_byte_fields(chunk, 19, 0x19191919);
 	FAIL_IF_ERR(r);
 
 	r = expand_chunk_up(chunk, 49);
@@ -214,9 +214,9 @@ int test_expand_chunk_down(void){
 	chunk = new_bytechunk(10, 19);
 	FAIL_IF(chunk == NULL);
 
-	r = chunk_set_fields(chunk, 10, 0x10101010);
+	r = chunk_set_byte_fields(chunk, 10, 0x10101010);
 	FAIL_IF_ERR(r);
-	r = chunk_set_fields(chunk, 19, 0x19191919);
+	r = chunk_set_byte_fields(chunk, 19, 0x19191919);
 	FAIL_IF_ERR(r);
 
 
@@ -252,19 +252,19 @@ test_copy_bytes_from_chunk(void){
 	FAIL_IF(chunk == NULL);
 
 	r = 0;
-	r |= chunk_set_fields(chunk, 10, set_value_field(0x10, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 11, set_value_field(0x11, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 12, set_value_field(0x12, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 13, set_value_field(0x13, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 14, set_value_field(0x14, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 15, set_value_field(0x15, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 16, set_value_field(0x16, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 17, set_value_field(0x17, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 18, set_value_field(0x18, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 19, set_value_field(0x19, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 10, set_value_field(0x10, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 11, set_value_field(0x11, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 12, set_value_field(0x12, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 13, set_value_field(0x13, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 14, set_value_field(0x14, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 15, set_value_field(0x15, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 16, set_value_field(0x16, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 17, set_value_field(0x17, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 18, set_value_field(0x18, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 19, set_value_field(0x19, VALUE_VALID));
 	FAIL_IF(r != 0);
 
-	r = real_copy_from_bytes(chunk, 10, buf, sizeof(buf));
+	r = copy_bytes_from_chunk(chunk, 10, buf, sizeof(buf));
 	FAIL_IF_ERR(r);
 
 	r = 0;
@@ -294,10 +294,10 @@ test_copy_bytes_from_chunk_invalid_value(void){
 	FAIL_IF(chunk == NULL);
 
 	r = 0;
-	r |= chunk_set_fields(chunk, 10, set_value_field(0x10, VALUE_VALID));
-	r |= chunk_set_fields(chunk, 12, set_value_field(0x12, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 10, set_value_field(0x10, VALUE_VALID));
+	r |= chunk_set_byte_fields(chunk, 12, set_value_field(0x12, VALUE_VALID));
 	
-	r = real_copy_from_bytes(chunk, 10, buf, 3);
+	r = copy_bytes_from_chunk(chunk, 10, buf, 3);
 	FAIL_IF(r == 0);
 	FAIL_IF(dis_errno != DER_INVVALUE);
 
@@ -326,10 +326,10 @@ test_copy_bytes_to_chunk(void){
 	chunk = new_bytechunk(10, 19);
 	FAIL_IF(chunk == NULL);
 
-	r = real_copy_to_bytes(chunk, 10, src, 10);
+	r = copy_bytes_to_chunk(chunk, 10, src, 10);
 	FAIL_IF_ERR(r);
 
-	r = real_copy_from_bytes(chunk, 10, dst, 10);
+	r = copy_bytes_from_chunk(chunk, 10, dst, 10);
 	FAIL_IF_ERR(r);
 
 	r = memcmp(src, dst, 10);
@@ -353,7 +353,7 @@ test_chunk_set_bytes(void){
 	r = chunk_set_bytes(chunk, 0x90, 10, 19);
 	FAIL_IF_ERR(r);
 
-	r = real_copy_from_bytes(chunk, 10, dst, 10);
+	r = copy_bytes_from_chunk(chunk, 10, dst, 10);
 	FAIL_IF_ERR(r);
 
 	r = 0;
