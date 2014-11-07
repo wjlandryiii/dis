@@ -47,7 +47,7 @@ free_bytes(struct bytes *bytes){
 
 	for(chunk = bytes->b_chunks; chunk != NULL; chunk = next){
 		next = chunk->bc_next;
-		free_chunk(chunk);
+		free_bytechunk(chunk);
 	}
 	free(bytes);
 }
@@ -161,7 +161,7 @@ get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_flags_at_addr(chunk, addr, fields_out);
+		return chunk_get_byte_fields(chunk, addr, fields_out);
 	} else {
 		return -1;
 	}
@@ -375,7 +375,7 @@ bytes_get_byte_class(struct bytes *bytes, uint64_t addr, uint32_t *class_out){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		r = chunk_flags_at_addr(chunk, addr, &flags);
+		r = chunk_get_byte_fields(chunk, addr, &flags);
 		if(!r){
 			class = get_class_field(flags);
 			if(class_out){
@@ -439,7 +439,7 @@ set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last){
 
 	chunk = find_chunk_containing_addr(bytes, first);
 	if(chunk){
-		r = chunk_flags_at_addr(chunk, first, &flags);
+		r = chunk_get_byte_fields(chunk, first, &flags);
 		if(r){
 			return -1;
 		}
@@ -450,7 +450,7 @@ set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last){
 			}
 		}
 
-		r = chunk_flags_at_addr(chunk, last, &flags);
+		r = chunk_get_byte_fields(chunk, last, &flags);
 		if(is_class_tail(flags)){
 			r = chunk_item_end(chunk, last, &last);
 			if(r){
@@ -514,7 +514,7 @@ get_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t *datatype_out){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		if(chunk_flags_at_addr(chunk, addr, &flags)){
+		if(chunk_get_byte_fields(chunk, addr, &flags)){
 			return -1;
 		}
 		if(is_class_data(flags)){

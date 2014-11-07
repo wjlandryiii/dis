@@ -5,6 +5,8 @@
 #ifndef BYTEFIELDS_H
 #define BYTEFIELDS_H
 
+#include <stdint.h>
+
 #define BYTE_VALUE_MASK         0x000000FF
 
 #define BYTE_VALUE_FIELD(A)		(A & BYTE_VALUE_MASK)

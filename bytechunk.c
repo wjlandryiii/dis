@@ -68,8 +68,50 @@ new_bytechunk(uint64_t first, uint64_t last){
 
 
 void
-free_chunk(struct bytechunk *chunk){
+free_bytechunk(struct bytechunk *chunk){
 	free(chunk);
+}
+
+static int
+chunk_contains_addr(struct bytechunk *chunk, uint64_t addr){
+	if(addr < chunk->bc_first){
+		return 0;
+	} else if(chunk->bc_last < addr){
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+
+int
+chunk_get_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t *fields_out){
+	int i;
+
+	if(chunk_contains_addr(chunk, addr)){
+		i = addr - chunk->bc_first;
+		if(fields_out){
+			*fields_out = chunk->bc_bytes[i];
+		}
+		return 0;
+	} else {
+		dis_errno = DER_BOUNDS;
+		return -1;
+	}
+}
+
+int
+chunk_set_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields){
+	int i;
+
+	if(chunk_contains_addr(chunk, addr)){
+		i = addr - chunk->bc_first;
+		chunk->bc_bytes[i] = fields;
+		return 0;
+	} else {
+		dis_errno = DER_BOUNDS;
+		return -1;
+	}
 }
 
 
@@ -102,7 +144,7 @@ merge_chunks(struct bytechunk *before, struct bytechunk *after){
 	before->bc_last = after->bc_last;
 	before->bc_next = after->bc_next;
 	before->bc_bytes = buf;
-	free_chunk(after);
+	free_bytechunk(after);
 	return 0;
 
 fail:
@@ -137,23 +179,20 @@ fail:
 
 int
 expand_chunk_down(struct bytechunk *chunk, uint64_t first){
-	uint64_t new_size;
-	uint64_t old_size;
 	uint32_t *buf;
-	uint64_t n;
+	size_t old_nelem;
+	size_t new_nelem;
 
-	n = range_size(chunk->bc_first, chunk->bc_last);
-	old_size = n * sizeof(*(chunk->bc_bytes));
-	n = range_size(first, chunk->bc_last);
-	new_size = n * sizeof(*(chunk->bc_bytes));
+	old_nelem = range_size(chunk->bc_first, chunk->bc_last);
+	new_nelem = range_size(first, chunk->bc_last);
 
-	buf = realloc(chunk->bc_bytes, new_size);
+	buf = realloc(chunk->bc_bytes, new_nelem * sizeof(uint32_t));
 	if(!buf){
 		goto fail;
 	}
 
-	memmove(&buf[(new_size - old_size)/4], buf, old_size);
-	memset(&buf[old_size/4], 0, new_size - old_size);
+	memmove(&buf[new_nelem - old_nelem], buf, old_nelem * sizeof(uint32_t));
+	memset(buf, 0, (new_nelem - old_nelem) * sizeof(uint32_t) );
 
 	chunk->bc_bytes = buf;
 	chunk->bc_first = first;
@@ -161,45 +200,6 @@ expand_chunk_down(struct bytechunk *chunk, uint64_t first){
 
 fail:
 	return -1;
-}
-
-int
-chunk_flags_at_addr(struct bytechunk *chunk, uint64_t addr, uint32_t *flags){
-	int offset;
-
-	offset = addr - chunk->bc_first;
-	if(flags){
-		*flags = chunk->bc_bytes[offset];
-	}
-	return 0;
-}
-
-int
-chunk_set_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields){
-	int i;
-
-	i = addr - chunk->bc_first;
-	chunk->bc_bytes[i] = fields;
-	return 0;
-}
-
-int
-chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last){
-	uint32_t flags;
-	int start;
-	int stop;
-	int i;
-
-	start = first - chunk->bc_first;
-	stop = (last - chunk->bc_first) + 1;
-
-	for(i = start; i < stop; i++){
-		flags = chunk->bc_bytes[i];
-		flags = set_byte_value_field(flags, c);
-		flags = set_value_field(flags, VALUE_VALID);
-		chunk->bc_bytes[i] = flags;
-	}
-	return 0;
 }
 
 int
@@ -222,6 +222,9 @@ real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr,
 	return 0;
 }
 
+
+
+
 int
 real_copy_to_bytes(struct bytechunk *chunk, uint64_t addr,
 		uint8_t *buf, size_t size){
@@ -235,6 +238,25 @@ real_copy_to_bytes(struct bytechunk *chunk, uint64_t addr,
 		flags = set_byte_value_field(flags, buf[i]);
 		flags = set_value_field(flags, VALUE_VALID);
 		chunk->bc_bytes[offset+i] = flags;
+	}
+	return 0;
+}
+
+int
+chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last){
+	uint32_t flags;
+	int start;
+	int stop;
+	int i;
+
+	start = first - chunk->bc_first;
+	stop = (last - chunk->bc_first) + 1;
+
+	for(i = start; i < stop; i++){
+		flags = chunk->bc_bytes[i];
+		flags = set_byte_value_field(flags, c);
+		flags = set_value_field(flags, VALUE_VALID);
+		chunk->bc_bytes[i] = flags;
 	}
 	return 0;
 }
