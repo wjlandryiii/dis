@@ -67,18 +67,4 @@ int set_bytes_datatype_word(struct bytes *bytes, uint64_t addr);
 int set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr);
 int set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr);
 
-
-
-/*****************************************************************************/
-
-
-extern int 
-create_bytes(char *filename, uint32_t base_addr, struct bytes *bytes);
-
-extern int
-load_bytes(char *filename, struct bytes *bytes);
-
-extern int
-save_bytes(char *filename, struct bytes *bytes);
-
 #endif
