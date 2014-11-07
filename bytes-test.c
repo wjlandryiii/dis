@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "bytes.h"
+#include "bytefields.h"
 #include "testrunner.h"
 
 static int

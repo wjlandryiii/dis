@@ -9,6 +9,7 @@
 
 #include "bytes.h"
 #include "error.h"
+#include "bytefields.h"
 
 
 int
