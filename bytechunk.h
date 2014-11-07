@@ -36,22 +36,26 @@ int merge_chunks(struct bytechunk *before, struct bytechunk *after);
 int expand_chunk_up(struct bytechunk *chunk, uint64_t last); 
 int expand_chunk_down(struct bytechunk *chunk, uint64_t first);
 
-
+/* VALUE FIELD */
+/* TODO: rename copy_bytes_from/to_chunk -> copy_from/to_chunk */
 int copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
 int copy_bytes_to_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
 
 int chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last);
 
 
+/* CLASS FIELD */
+int chunk_get_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t *class_out);
+int chunk_set_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t class_);
+int is_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int chunk_item_head(struct bytechunk *chunk, uint64_t addr, uint64_t *head_out);
 int chunk_item_end(struct bytechunk *chunk, uint64_t addr, uint64_t *end_out);
 
-int is_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int set_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int set_chunk_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int set_chunk_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last);
 
-
+/* DATATYPE FIELD */
 int set_chunk_datatype_field(struct bytechunk *chunk, uint64_t addr, uint32_t datatype);
 
 #endif

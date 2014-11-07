@@ -261,6 +261,48 @@ chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t las
 	return 0;
 }
 
+
+int chunk_get_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t *class_out){
+	int i;
+
+	i = addr - chunk->bc_first;
+	if(class_out){
+		*class_out = get_class_field(chunk->bc_bytes[i]);
+	}
+	return 0;
+}
+
+int chunk_set_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t class){
+	int i;
+
+	i = addr - chunk->bc_first;
+	if(class){
+		chunk->bc_bytes[i] = set_class_field(chunk->bc_bytes[i], class);
+	}
+	return 0;
+}
+
+int
+is_chunk_range_class_unknown(struct bytechunk *chunk,
+		uint64_t first, uint64_t last){
+	uint32_t flags;
+	int start;
+	int stop;
+	int i;
+
+	start = first - chunk->bc_first;
+	stop = (last - chunk->bc_first) + 1;
+
+	for(i = start; i < stop; i++){
+		flags = chunk->bc_bytes[i];
+		if(!is_class_unknown(flags)){
+			return 0;
+		}
+	}
+	return 1;
+}
+
+
 int
 chunk_item_head(struct bytechunk *chunk, uint64_t addr, uint64_t *head_out){
 	uint32_t flags;
@@ -313,25 +355,6 @@ chunk_item_end(struct bytechunk *chunk, uint64_t addr, uint64_t *end_out){
 	return 0;
 }
 
-int
-is_chunk_range_class_unknown(struct bytechunk *chunk,
-		uint64_t first, uint64_t last){
-	uint32_t flags;
-	int start;
-	int stop;
-	int i;
-
-	start = first - chunk->bc_first;
-	stop = (last - chunk->bc_first) + 1;
-
-	for(i = start; i < stop; i++){
-		flags = chunk->bc_bytes[i];
-		if(!is_class_unknown(flags)){
-			return 0;
-		}
-	}
-	return 1;
-}
 
 
 int

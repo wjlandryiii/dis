@@ -367,6 +367,102 @@ test_chunk_set_bytes(void){
 }
 
 
+static int
+test_chunk_get_byte_class(void){
+	struct bytechunk *chunk;
+	uint32_t class;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_byte_fields(chunk, 10, set_class_field(0, CLASS_UNKNOWN));
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 10, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_UNKNOWN);
+
+	chunk_set_byte_fields(chunk, 11, set_class_field(0, CLASS_CODE));
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 11, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_CODE);
+
+	chunk_set_byte_fields(chunk, 12, set_class_field(0, CLASS_DATA));
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 12, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+
+	chunk_set_byte_fields(chunk, 13, set_class_field(0, CLASS_TAIL));
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 13, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_TAIL);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int
+test_chunk_set_byte_class(void){
+	struct bytechunk *chunk;
+	uint32_t class;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_byte_class(chunk, 10, CLASS_UNKNOWN);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 10, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_UNKNOWN);
+	
+	chunk_set_byte_fields(chunk, 11, CLASS_CODE);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 11, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_CODE);
+
+	chunk_set_byte_fields(chunk, 12, CLASS_DATA);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 12, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+
+	chunk_set_byte_fields(chunk, 13, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_class(chunk, 13, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_TAIL);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int
+test_is_chunk_range_class_unknown(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = is_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF(!r);
+
+	r = chunk_set_byte_class(chunk, 14, CLASS_DATA);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF(r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
 static struct test tests[] = {
 	{"newfree", test_newfree},
 	{"chunk_get_byte_fields", test_chunk_get_byte_fields},
@@ -380,6 +476,9 @@ static struct test tests[] = {
 	{"copy_bytes_from_chunk-invalid_value", test_copy_bytes_from_chunk_invalid_value},
 	{"copy_bytes_to_chunk", test_copy_bytes_to_chunk},
 	{"chunk_set_bytes", test_chunk_set_bytes},
+	{"chunk_get_byte_class", test_chunk_get_byte_class},
+	{"chunk_set_byte_class", test_chunk_set_byte_class},
+	{"is_chunk_range_class_unknown", test_is_chunk_range_class_unknown},
 	{NULL, NULL},
 };
 
