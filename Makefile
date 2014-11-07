@@ -4,6 +4,7 @@ CFLAGS=-lcapstone -lreadline -g -Wall
 all: test.exe
 
 CORE_OBJS = error.o \
+	    bytechunk.o \
 	    bytes.o \
 	    workspace.o \
 	    disassembler.o \

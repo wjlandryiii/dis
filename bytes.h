@@ -7,14 +7,6 @@
 
 #include <stdint.h>
 
-struct bytechunk {
-	struct bytechunk *bc_next;
-	uint64_t bc_first;
-	uint64_t bc_last;
-	uint32_t *bc_bytes;
-};
-
-
 struct bytes {
 	uint32_t addr;
 	uint32_t count;

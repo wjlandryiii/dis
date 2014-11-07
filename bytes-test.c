@@ -3,6 +3,7 @@
 
 #include "bytes.h"
 #include "bytefields.h"
+#include "bytechunk.h"
 #include "testrunner.h"
 
 static int
