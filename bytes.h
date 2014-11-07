@@ -37,29 +37,33 @@ next_chunk(struct bytechunk *chunk);
 int
 enable_bytes(struct bytes *bytes, uint64_t first, uint64_t last);
 
+
 /* TODO
 int
 disable_bytes(struct bytes *bytes, uint64_t first, uint64_t last);
 */
 
 int
-get_byte_flags(struct bytes *bytes, uint64_t addr, uint32_t *flags);
+get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out);
+
+/* set_byte_fields() should only be used for testing! */
+int
+set_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t fields);
 
 
+#define BYTE_VALUE_MASK         0x000000FF
 
-#define BYTE_MASK         0x000000FF
-
-#define BYTE_FIELD(A)		(A & BYTE_MASK)
-#define SET_BYTE_FIELD(A,B)	((A & ~BYTE_MASK) | B)
+#define BYTE_VALUE_FIELD(A)		(A & BYTE_VALUE_MASK)
+#define SET_BYTE_VALUE_FIELD(A,B)	((A & ~BYTE_VALUE_MASK) | B)
 
 static inline uint8_t
-get_byte_field(uint32_t flags){
-	return BYTE_FIELD(flags);
+get_byte_value_field(uint32_t flags){
+	return BYTE_VALUE_FIELD(flags);
 }
 
 static inline uint32_t
-set_byte_field(uint32_t flags, uint8_t byte){
-	return SET_BYTE_FIELD(flags, byte);
+set_byte_value_field(uint32_t flags, uint8_t byte){
+	return SET_BYTE_VALUE_FIELD(flags, byte);
 }
 
 #define VALUE_MASK        0x00000F00
@@ -92,8 +96,6 @@ is_value_valid(uint32_t flags){
 	return IS_VALUE_VALID(flags);
 }
 
-int
-set_bytes(struct bytes *bytes, uint8_t c, uint64_t first, uint64_t last);
 
 int
 copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
@@ -113,6 +115,9 @@ bytes_get_qword(struct bytes *bytes, uint64_t addr, uint64_t *qword_out);
 
 int
 copy_to_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
+
+int
+set_bytes(struct bytes *bytes, uint8_t c, uint64_t first, uint64_t last);
 
 int
 bytes_put_byte(struct bytes *t, uint64_t addr, uint8_t value);
@@ -171,6 +176,7 @@ is_class_tail(uint32_t flags){
 	return IS_CLASS_TAIL(flags);
 }
 
+int bytes_get_byte_class(struct bytes *bytes, uint64_t addr, uint32_t *class_out);
 
 int item_head(struct bytes *bytes, uint64_t addr, uint64_t *head_out);
 int item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out);
@@ -184,13 +190,13 @@ int next_not_tail(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
 */
 
 int
-set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
-
-int
 set_class_code(struct bytes *bytes, uint64_t first, uint64_t last);
 
 int
 set_class_data(struct bytes *bytes, uint64_t first, uint64_t last);
+
+int
+set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
 
 #define DATATYPE_MASK     0x000F0000
 #define DATATYPE_BYTE     0x00000000

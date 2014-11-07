@@ -8,6 +8,7 @@
 #include <assert.h>
 
 #include "bytes.h"
+#include "error.h"
 
 
 int
@@ -308,6 +309,39 @@ chunk_flags_at_addr(struct bytechunk *chunk, uint64_t addr, uint32_t *flags){
 	return 0;
 }
 
+int
+get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_flags_at_addr(chunk, addr, fields_out);
+	} else {
+		return -1;
+	}
+}
+
+int
+chunk_set_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields){
+	int i;
+
+	i = addr - chunk->bc_first;
+	chunk->bc_bytes[i] = fields;
+	return 0;
+}
+
+int
+set_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t fields){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_set_fields(chunk, addr, fields);
+	} else {
+		return -1;
+	}
+}
+
 
 static int
 chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last){
@@ -317,11 +351,11 @@ chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t las
 	int i;
 
 	start = first - chunk->bc_first;
-	stop = (last - chunk->bc_last) + 1;
+	stop = (last - chunk->bc_first) + 1;
 
 	for(i = start; i < stop; i++){
 		flags = chunk->bc_bytes[i];
-		flags = set_byte_field(flags, c);
+		flags = set_byte_value_field(flags, c);
 		flags = set_value_field(flags, VALUE_VALID);
 		chunk->bc_bytes[i] = flags;
 	}
@@ -353,8 +387,9 @@ real_copy_from_bytes(struct bytechunk *chunk, uint64_t addr,
 	for(i = 0; i < size; i++){
 		flags = chunk->bc_bytes[offset+i];
 		if(is_value_valid(flags)){
-			buf[i] = get_byte_field(flags);
+			buf[i] = get_byte_value_field(flags);
 		} else {
+			dis_errno = DER_INVVALUE;
 			return -1;
 		}
 	}
@@ -370,9 +405,11 @@ copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
 		if(addr + size - 1 <= chunk->bc_last){
 			return real_copy_from_bytes(chunk, addr, buf, size);
 		} else {
+			dis_errno = DER_BOUNDS;
 			return -1;
 		}
 	} else {
+		dis_errno = DER_INVADDR;
 		return -1;
 	}
 
@@ -387,7 +424,7 @@ bytes_get_byte(struct bytes *bytes, uint64_t addr, uint8_t *byte_out){
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
 		offset = addr - chunk->bc_first;
-		byte = get_byte_field(chunk->bc_bytes[offset]);
+		byte = get_byte_value_field(chunk->bc_bytes[offset]);
 		if(byte_out){
 			*byte_out = byte;
 		}
@@ -470,7 +507,7 @@ real_copy_to_bytes(struct bytechunk *chunk, uint64_t addr,
 	offset = addr - chunk->bc_first;
 	for(i = 0; i < size; i++){
 		flags = chunk->bc_bytes[offset+i];
-		flags = set_byte_field(flags, buf[i]);
+		flags = set_byte_value_field(flags, buf[i]);
 		flags = set_value_field(flags, VALUE_VALID);
 		chunk->bc_bytes[offset+i] = flags;
 	}
@@ -543,6 +580,33 @@ bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value){
 
 /*********/
 /********/
+
+int
+bytes_get_byte_class(struct bytes *bytes, uint64_t addr, uint32_t *class_out){
+	struct bytechunk *chunk;
+	uint32_t flags;
+	uint32_t class;
+	register int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		r = chunk_flags_at_addr(chunk, addr, &flags);
+		if(!r){
+			class = get_class_field(flags);
+			if(class_out){
+				*class_out = class;
+			}
+			return 0;
+		} else {
+			return r;
+		}
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;	
+	}
+	return 0;
+}
+
 
 static int
 chunk_item_head(struct bytechunk *chunk, uint64_t addr, uint64_t *head_out){
@@ -952,7 +1016,7 @@ int create_bytes(char *filename, uint32_t base_addr, struct bytes *bytes){
 			goto fail;
 		}
 		flags = 0;
-		flags = set_byte_field(flags, c);
+		flags = set_byte_value_field(flags, c);
 		flags = set_value_field(flags, VALUE_VALID);
 		byte_flags[i] = flags;
 	}
