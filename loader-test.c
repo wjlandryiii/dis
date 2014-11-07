@@ -11,6 +11,7 @@
 #include "loader.h"
 #include "testrunner.h"
 #include "elf.h"
+#include "bytefields.h"
 
 const char *linux_raw_filename = "data/helloworld.bin";
 const char *linux_elf32_filename = "data/helloworld.exe";
@@ -100,12 +101,45 @@ test_load_file_elf(void){
 	return 0;
 }
 
+static int
+test_pre_analysis_elf(void){
+	FILE *f;
+	struct workspace *ws;
+	uint32_t datatype;
+	int r;
+
+	ws = new_workspace();
+	FAIL_IF(!ws);
+
+	f = fopen(linux_elf32_filename, "r");
+	r = load_file_elf(ws, f);
+	fclose(f);
+	FAIL_IF(r);
+
+	r = pre_analysis_elf(ws);
+	FAIL_IF_ERR(r);
+
+	r = get_bytes_datatype(ws->ws_bytes, 0x08048000, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_BYTE);
+	
+	r = get_bytes_datatype(ws->ws_bytes, 0x08048010, &datatype);
+	FAIL_IF_ERR(r);
+	printf("\n%08x\n", (unsigned int) datatype);
+	FAIL_IF(datatype != DATATYPE_WORD);
+
+	return 0;
+
+
+}
+
 static struct test tests[] = {
 	{"can_load_file_raw", test_can_load_file_raw},
 	{"can_load_file_elf-pass", test_can_load_file_elf_pass},
 	{"can_load_file_elf-fail", test_can_load_file_elf_fail},
 	{"load_file_raw", test_load_file_raw},
 	{"load_file_elf", test_load_file_elf},
+	{"pre_analysis_elf", test_pre_analysis_elf},
 	{NULL,NULL},
 };
 

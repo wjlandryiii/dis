@@ -31,5 +31,6 @@ int load_file_raw(struct workspace *ws, FILE *f);
 
 int can_load_file_elf(FILE *f);
 int load_file_elf(struct workspace *ws, FILE *f);
+int pre_analysis_elf(struct workspace *ws);
 
 #endif
