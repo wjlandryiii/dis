@@ -12,4 +12,6 @@ const char *dis_errstr[] = {
 	"Bounds checking error",
 	"Invalid address",
 	"Byte doesn't have a value",
+	"Invalid parameter value",
+	"An operation requiring unclassified bytes was attempted on a known region",
 };

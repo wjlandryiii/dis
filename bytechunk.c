@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #include "bytechunk.h"
 #include "bytefields.h"
@@ -70,6 +72,22 @@ new_bytechunk(uint64_t first, uint64_t last){
 void
 free_bytechunk(struct bytechunk *chunk){
 	free(chunk);
+}
+
+void dump_chunk(struct bytechunk *chunk){
+	int i;
+
+	printf("\n\n");
+	printf("CHUNK: %p\n", chunk);
+	printf("chunk->bc_next:  %p\n", chunk->bc_next);
+	printf("chunk->bc_first: %016" PRIx64 "\n", chunk->bc_first);
+	printf("chunk->bc_last:  %016" PRIx64 "\n", chunk->bc_last);
+	printf("chunk->bc_bytes:\n");
+
+	for(i = 0; i <= chunk->bc_last - chunk->bc_first; i++){
+		printf("\t%3d\t%08" PRIx32 "\n", i, chunk->bc_bytes[i]);
+	}
+	printf("\n");
 }
 
 static int
@@ -202,6 +220,10 @@ fail:
 	return -1;
 }
 
+
+/****************************    Value Field     *****************************/
+
+
 int
 copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr,
 		uint8_t *buf, size_t size){
@@ -262,6 +284,9 @@ chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t las
 }
 
 
+/******************************   Class Field   ******************************/
+
+
 int chunk_get_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t *class_out){
 	int i;
 
@@ -272,20 +297,8 @@ int chunk_get_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t *class
 	return 0;
 }
 
-int chunk_set_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t class){
-	int i;
-
-	i = addr - chunk->bc_first;
-	if(class){
-		chunk->bc_bytes[i] = set_class_field(chunk->bc_bytes[i], class);
-	}
-	return 0;
-}
-
-int
-is_chunk_range_class_unknown(struct bytechunk *chunk,
-		uint64_t first, uint64_t last){
-	uint32_t flags;
+int is_chunk_range_class(struct bytechunk *chunk, uint64_t first, uint64_t last, uint32_t class){
+	uint32_t fields;
 	int start;
 	int stop;
 	int i;
@@ -294,12 +307,189 @@ is_chunk_range_class_unknown(struct bytechunk *chunk,
 	stop = (last - chunk->bc_first) + 1;
 
 	for(i = start; i < stop; i++){
-		flags = chunk->bc_bytes[i];
-		if(!is_class_unknown(flags)){
+		fields = chunk->bc_bytes[i];
+		if(get_class_field(fields) != class){
 			return 0;
 		}
 	}
 	return 1;
+}
+
+
+int is_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return is_chunk_range_class(chunk, first, last, CLASS_UNKNOWN);
+}
+
+int is_chunk_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return is_chunk_range_class(chunk, first, last, CLASS_CODE);
+}
+
+
+int is_chunk_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return is_chunk_range_class(chunk, first, last, CLASS_DATA);
+}
+
+
+int is_chunk_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return is_chunk_range_class(chunk, first, last, CLASS_TAIL);
+}
+
+
+
+
+int chunk_set_byte_class(struct bytechunk *chunk, uint64_t addr, uint32_t class){
+	int i;
+
+	i = addr - chunk->bc_first;
+	chunk->bc_bytes[i] = set_class_field(chunk->bc_bytes[i], class);
+	return 0;
+}
+
+int chunk_set_range_class(struct bytechunk *chunk, uint64_t first, uint64_t last, uint32_t class){
+	uint32_t fields;
+	int start;
+	int stop;
+	int i;
+
+	start = first - chunk->bc_first;
+	stop = (last - chunk->bc_first) + 1;
+
+	for(i = start; i < stop; i++){
+		fields = chunk->bc_bytes[i];
+		fields = set_class_field(fields, class);
+		chunk->bc_bytes[i] = fields;
+	}
+	return 0;
+}
+
+int set_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return chunk_set_range_class(chunk, first, last, CLASS_UNKNOWN);
+}
+
+int set_chunk_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return chunk_set_range_class(chunk, first, last, CLASS_CODE);
+}
+
+int set_chunk_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return chunk_set_range_class(chunk, first, last, CLASS_DATA);
+}
+
+int set_chunk_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	return chunk_set_range_class(chunk, first, last, CLASS_TAIL);
+}
+
+/*******************************   Datatype Field   **************************/
+
+int chunk_get_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t *datatype_out){
+	uint32_t fields;
+	int i;
+
+	i = addr - chunk->bc_first;
+	fields = chunk->bc_bytes[i];
+	if(datatype_out){
+		*datatype_out = get_datatype_field(fields);
+	}
+	return 0;
+}
+
+int
+chunk_set_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t datatype){
+	uint32_t flags;
+	int offset;
+
+	offset = addr - chunk->bc_first;
+	flags = chunk->bc_bytes[offset];
+	flags = set_datatype_field(flags, datatype);
+	chunk->bc_bytes[offset] = flags;
+	return 0;
+}
+
+
+/**************************    Items     *************************************/
+
+int chunk_first_item(struct bytechunk *chunk, uint64_t *first_out){
+	int i;
+	int start;
+	int stop;
+	uint32_t fields;
+
+	start = 0;
+	stop = (chunk->bc_last - chunk->bc_first) + 1;
+
+	for(i = start; i < stop; i++){
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields) && !is_class_unknown(fields)){
+			if(first_out){
+				*first_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int chunk_last_item(struct bytechunk *chunk, uint64_t *last_out){
+	uint32_t fields;
+	int start;
+	int stop;
+	int i;
+
+	start = (chunk->bc_last - chunk->bc_first) + 1;
+	stop = -1;
+
+	for(i = start; i > stop; i--){
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields) && !is_class_unknown(fields)){
+			if(last_out){
+				*last_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int chunk_next_item(struct bytechunk *chunk, uint64_t addr, uint64_t *next_out){
+	uint32_t fields;
+	int start;
+	int stop;
+	int i;
+
+	start = (addr - chunk->bc_first) + 1;
+	stop = (chunk->bc_last - chunk->bc_first) + 1;
+
+	for(i = start; i < stop; i++){
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields) && !is_class_unknown(fields)){
+			if(next_out){
+				*next_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
+	}
+	return -1;
+}
+
+
+int chunk_prev_item(struct bytechunk *chunk, uint64_t addr, uint64_t *prev_out){
+	uint32_t fields;
+	int start;
+	int stop;
+	int i;
+
+	start = (addr - chunk->bc_first) - 1;
+	stop = -1;
+
+	for(i = start; i > stop; i--){
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields) && !is_class_unknown(fields)){
+			if(prev_out){
+				*prev_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
+	}
+	return -1;
 }
 
 
@@ -334,13 +524,13 @@ int
 chunk_item_end(struct bytechunk *chunk, uint64_t addr, uint64_t *end_out){
 	uint32_t flags;
 	int start;
-	int end;
+	int stop;
 	int i;
 
-	start = addr - chunk->bc_first;
-	end = (chunk->bc_last - chunk->bc_first) + 1;
+	start = (addr - chunk->bc_first) + 1;
+	stop = (chunk->bc_last - chunk->bc_first) + 1;
 
-	for(i = start + 1; i < end; i++){
+	for(i = start; i < stop; i++){
 		flags = chunk->bc_bytes[i];
 		if(!is_class_tail(flags)){
 			if(end_out){
@@ -355,82 +545,190 @@ chunk_item_end(struct bytechunk *chunk, uint64_t addr, uint64_t *end_out){
 	return 0;
 }
 
-
-
-int
-set_chunk_range_class_unknown(struct bytechunk *chunk,
-		uint64_t first, uint64_t last){
-	uint32_t flags;
+int chunk_first_not_tail(struct bytechunk *chunk, uint64_t *first_out){
+	uint32_t fields;
 	int start;
 	int stop;
 	int i;
 
-	start = first - chunk->bc_first;
-	stop = (last - chunk->bc_first) + 1;
+	start = 0;
+	stop = (chunk->bc_last - chunk->bc_first) + 1;
 
 	for(i = start; i < stop; i++){
-		flags = chunk->bc_bytes[i];
-		flags = set_class_field(flags, CLASS_UNKNOWN);
-		chunk->bc_bytes[i] = flags;
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields)){
+			if(first_out){
+				*first_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
 	}
-	return 0;
+	return -1;
 }
 
-int
-set_chunk_range_class_code(struct bytechunk *chunk,
-		uint64_t first, uint64_t last){
-	uint32_t flags;
+int chunk_last_not_tail(struct bytechunk *chunk, uint64_t *last_out){
+	uint32_t fields;
 	int start;
 	int stop;
 	int i;
 
-	start = first - chunk->bc_first;
-	stop = (last - chunk->bc_first) + 1;
+	start = (chunk->bc_last - chunk->bc_first);
+	stop = -1;
 
-	flags = chunk->bc_bytes[start];
-	flags = set_class_field(flags, CLASS_CODE);
-	chunk->bc_bytes[start] = flags;
-
-	for(i = start + 1; i < stop; i++){
-		flags = chunk->bc_bytes[i];
-		flags = set_class_field(flags, CLASS_TAIL);
-		chunk->bc_bytes[i] = flags;
+	for(i = start; i > stop; i--){
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields)){
+			if(last_out){
+				*last_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
 	}
-	return 0;
+	return -1;
 }
 
-
-int
-set_chunk_range_class_data(struct bytechunk *chunk,
-		uint64_t first, uint64_t last){
-	uint32_t flags;
+int chunk_next_not_tail(struct bytechunk *chunk, uint64_t addr, uint64_t *next_out){
+	int i;
 	int start;
 	int stop;
+	uint32_t fields;
+
+	start = (addr - chunk->bc_first) + 1;
+	stop = (chunk->bc_last - chunk->bc_first) + 1;
+
+	for(i = start; i < stop; i++){
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields)){
+			if(next_out){
+				*next_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
+	}
+	return -1;
+
+}
+
+
+int chunk_prev_not_tail(struct bytechunk *chunk, uint64_t addr, uint64_t *prev_out){
 	int i;
+	int start;
+	int stop;
+	uint32_t fields;
 
-	start = first - chunk->bc_first;
-	stop = (last - chunk->bc_first) + 1;
+	start = (addr - chunk->bc_first) - 1;
+	stop = -1;
 
-	flags = chunk->bc_bytes[start];
-	flags = set_class_field(flags, CLASS_DATA);
-	chunk->bc_bytes[start] = flags;
+	for(i = start; i > stop; i--){
+		fields = chunk->bc_bytes[i];
+		if(!is_class_tail(fields)){
+			if(prev_out){
+				*prev_out = chunk->bc_first + i;
+			}
+			return 0;
+		}
+	}
+	return -1;
+}
 
-	for(i = start + 1; i < stop; i++){
-		flags = chunk->bc_bytes[i];
-		flags = set_class_field(flags, CLASS_TAIL);
-		chunk->bc_bytes[i] = flags;
+int chunk_create_code_item(struct bytechunk *chunk, uint64_t first, uint64_t last){
+	register int r;
+
+	if(first > last){
+		dis_errno = DER_INVPARAM;
+		return -1;
+	}
+
+	if(!is_chunk_range_class_unknown(chunk, first, last)){
+		dis_errno = DER_NOTUNKNOWN;
+		return -1;
+	}
+
+	r = chunk_set_byte_class(chunk, first, CLASS_CODE);
+	if(r){
+		return r;
+	}
+
+	if(first + 1 <= last){
+		r = set_chunk_range_class_tail(chunk, first+1, last);
+		if(r){
+			return r;
+		}
 	}
 	return 0;
 }
 
-int
-set_chunk_datatype_field(struct bytechunk *chunk, uint64_t addr, uint32_t datatype){
-	uint32_t flags;
-	int offset;
+int chunk_create_data_item_byte(struct bytechunk *chunk, uint64_t addr){
+	uint32_t fields;
+	int i;
 
-	offset = chunk->bc_first - addr;
-	flags = chunk->bc_bytes[offset];
-	flags = set_datatype_field(flags, datatype);
-	chunk->bc_bytes[offset] = flags;
-	return 0;
+	i = addr - chunk->bc_first;
+	fields = chunk->bc_bytes[i];
+
+	if(is_class_unknown(fields)){
+		fields = set_class_field(fields, CLASS_DATA);
+		fields = set_datatype_field(fields, DATATYPE_BYTE);
+		chunk->bc_bytes[i] = fields;
+		return 0;
+	} else {
+		dis_errno = DER_NOTUNKNOWN;
+		return -1;
+	}
+}
+
+int chunk_create_data_item_word(struct bytechunk *chunk, uint64_t addr){
+	uint32_t fields;
+	int i;
+
+	i = addr - chunk->bc_first;
+	fields = chunk->bc_bytes[i];
+
+	if(is_chunk_range_class_unknown(chunk, addr, addr+1)){
+		fields = set_class_field(fields, CLASS_DATA);
+		fields = set_datatype_field(fields, DATATYPE_WORD);
+		chunk->bc_bytes[i] = fields;
+		return chunk_set_byte_class(chunk, addr+1, CLASS_TAIL);
+	} else {
+		dis_errno = DER_NOTUNKNOWN;
+		return -1;
+	}
+	return -1;
+}
+
+int chunk_create_data_item_dword(struct bytechunk *chunk, uint64_t addr){
+	uint32_t fields;
+	int i;
+
+	i = addr - chunk->bc_first;
+	fields = chunk->bc_bytes[i];
+
+	if(is_chunk_range_class_unknown(chunk, addr, addr+3)){
+		fields = set_class_field(fields, CLASS_DATA);
+		fields = set_datatype_field(fields, DATATYPE_DWORD);
+		chunk->bc_bytes[i] = fields;
+		return set_chunk_range_class_tail(chunk, addr+1, addr+3);
+	} else {
+		dis_errno = DER_NOTUNKNOWN;
+		return -1;
+	}
+	return -1;
+}
+
+int chunk_create_data_item_qword(struct bytechunk *chunk, uint64_t addr){
+	uint32_t fields;
+	int i;
+
+	i = addr - chunk->bc_first;
+	fields = chunk->bc_bytes[i];
+
+	if(is_chunk_range_class_unknown(chunk, addr, addr+7)){
+		fields = set_class_field(fields, CLASS_DATA);
+		fields = set_datatype_field(fields, DATATYPE_QWORD);
+		chunk->bc_bytes[i] = fields;
+		return set_chunk_range_class_tail(chunk, addr+1, addr+7);
+	} else {
+		dis_errno = DER_NOTUNKNOWN;
+		return -1;
+	}
+	return -1;
 }

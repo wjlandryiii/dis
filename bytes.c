@@ -543,7 +543,7 @@ set_bytes_datatype_byte(struct bytes *bytes, uint64_t addr){
 			if(r){
 				return -1;
 			}
-			set_chunk_datatype_field(chunk, addr, DATATYPE_BYTE);
+			chunk_set_byte_datatype(chunk, addr, DATATYPE_BYTE);
 			return 0;
 		} else {
 			return -1;
@@ -565,7 +565,7 @@ set_bytes_datatype_word(struct bytes *bytes, uint64_t addr){
 			if(r){
 				return -1;
 			}
-			set_chunk_datatype_field(chunk, addr, DATATYPE_WORD);
+			chunk_set_byte_datatype(chunk, addr, DATATYPE_WORD);
 			return 0;
 		} else {
 			return -1;
@@ -587,7 +587,7 @@ set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr){
 			if(r){
 				return -1;
 			}
-			set_chunk_datatype_field(chunk, addr, DATATYPE_DWORD);
+			chunk_set_byte_datatype(chunk, addr, DATATYPE_DWORD);
 			return 0;
 		} else {
 			return -1;
@@ -609,7 +609,7 @@ set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr){
 			if(r){
 				return -1;
 			}
-			set_chunk_datatype_field(chunk, addr, DATATYPE_QWORD);
+			chunk_set_byte_datatype(chunk, addr, DATATYPE_QWORD);
 			return 0;
 		} else {
 			return -1;

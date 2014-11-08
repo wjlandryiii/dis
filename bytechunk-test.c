@@ -242,6 +242,8 @@ int test_expand_chunk_down(void){
 }
 
 
+/*******************************    Value Field    ***************************/
+
 static int
 test_copy_bytes_from_chunk(void){
 	struct bytechunk *chunk;
@@ -367,6 +369,11 @@ test_chunk_set_bytes(void){
 }
 
 
+
+/****************************   Class Field   ********************************/
+
+
+
 static int
 test_chunk_get_byte_class(void){
 	struct bytechunk *chunk;
@@ -441,8 +448,101 @@ test_chunk_set_byte_class(void){
 	return 0;
 }
 
-static int
-test_is_chunk_range_class_unknown(void){
+
+static int test_is_chunk_range_class(void){
+	struct bytechunk *chunk;
+	register int r;
+	int i;
+	
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	for(i = 10; i < 20; i++){
+		chunk_set_byte_class(chunk, i, CLASS_UNKNOWN);
+	}
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_UNKNOWN);
+	FAIL_IF(!r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_DATA);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_TAIL);
+	FAIL_IF(r);
+
+	for(i = 10; i < 20; i++){
+		chunk_set_byte_class(chunk, i, CLASS_CODE);
+	}
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_UNKNOWN);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF(!r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_DATA);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_TAIL);
+	FAIL_IF(r);
+
+	for(i = 10; i < 20; i++){
+		chunk_set_byte_class(chunk, i, CLASS_DATA);
+	}
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_UNKNOWN);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_DATA);
+	FAIL_IF(!r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_TAIL);
+	FAIL_IF(r);
+
+	for(i = 10; i < 20; i++){
+		chunk_set_byte_class(chunk, i, CLASS_TAIL);
+	}
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_UNKNOWN);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_DATA);
+	FAIL_IF(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_TAIL);
+	FAIL_IF(!r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_set_range_class(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_UNKNOWN);
+	FAIL_IF_ERR(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_UNKNOWN);
+	FAIL_IF(!r);
+	
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF_ERR(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF(!r);
+	
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_DATA);
+	FAIL_IF_ERR(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_DATA);
+	FAIL_IF(!r);
+	
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+	r = is_chunk_range_class(chunk, 10, 19, CLASS_TAIL);
+	FAIL_IF(!r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_is_chunk_range_class_unknown(void){
 	struct bytechunk *chunk;
 	register int r;
 
@@ -462,6 +562,779 @@ test_is_chunk_range_class_unknown(void){
 	return 0;
 }
 
+static int test_is_chunk_range_class_code(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_code(chunk, 10, 19);
+	FAIL_IF(!r);
+
+	r = chunk_set_byte_class(chunk, 14, CLASS_UNKNOWN);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_code(chunk, 10, 19);
+	FAIL_IF(r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_is_chunk_range_class_data(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_DATA);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_data(chunk, 10, 19);
+	FAIL_IF(!r);
+
+	r = chunk_set_byte_class(chunk, 14, CLASS_UNKNOWN);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_data(chunk, 10, 19);
+	FAIL_IF(r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_is_chunk_range_class_tail(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_tail(chunk, 10, 19);
+	FAIL_IF(!r);
+
+	r = chunk_set_byte_class(chunk, 14, CLASS_UNKNOWN);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_tail(chunk, 10, 19);
+	FAIL_IF(r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_set_chunk_range_class_unknown(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_range_class(chunk, 10, 19, CLASS_CODE);
+	FAIL_IF_ERR(r);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF(r == 0);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_set_chunk_range_class_code(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = set_chunk_range_class_code(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_code(chunk, 10, 19);
+	FAIL_IF(r == 0);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_set_chunk_range_class_data(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = set_chunk_range_class_data(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_data(chunk, 10, 19);
+	FAIL_IF(r == 0);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_set_chunk_range_class_tail(void){
+	struct bytechunk *chunk;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = set_chunk_range_class_tail(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = is_chunk_range_class_tail(chunk, 10, 19);
+	FAIL_IF(r == 0);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+/***************************   Datatype Field    *****************************/
+
+static int test_chunk_get_byte_datatype(void){
+	struct bytechunk *chunk;
+	uint32_t fields;
+	uint32_t datatype;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_BYTE);
+	r = chunk_set_byte_fields(chunk, 10, fields);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_BYTE);
+	
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_WORD);
+	r = chunk_set_byte_fields(chunk, 10, fields);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_WORD);
+
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_DWORD);
+	r = chunk_set_byte_fields(chunk, 10, fields);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_DWORD);
+
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_QWORD);
+	r = chunk_set_byte_fields(chunk, 10, fields);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_QWORD);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_set_byte_datatype(void){
+	struct bytechunk *chunk;
+	uint32_t datatype;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_byte_datatype(chunk, 10, DATATYPE_BYTE);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_BYTE);
+	
+	r = chunk_set_byte_datatype(chunk, 10, DATATYPE_WORD);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_WORD);
+
+	r = chunk_set_byte_datatype(chunk, 10, DATATYPE_DWORD);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_DWORD);
+
+	r = chunk_set_byte_datatype(chunk, 10, DATATYPE_QWORD);
+	FAIL_IF_ERR(r);
+	r = chunk_get_byte_datatype(chunk, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_QWORD);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+/****************************    Items    ************************************/
+
+
+static int test_chunk_first_item(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 10, CLASS_CODE);
+	FAIL_IF_ERR(r);
+	addr = 0;
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 10, CLASS_DATA);
+       	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 14, CLASS_CODE);
+       	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 14, CLASS_DATA);
+       	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+	
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 19, CLASS_CODE);
+       	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 19);
+	
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 19, CLASS_DATA);
+       	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 19);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF(!r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_last_item(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 14, CLASS_DATA);
+	r |= chunk_set_range_class(chunk, 15, 17, CLASS_TAIL);
+       	FAIL_IF_ERR(r);
+	r = chunk_last_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_next_item(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+	r = 0;
+	r |= chunk_set_byte_class(chunk, 10, CLASS_DATA); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 11, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 12, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 13, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 14, CLASS_CODE); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 15, CLASS_CODE); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 16, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 17, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 18, CLASS_DATA); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 19, CLASS_TAIL);
+       	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	
+	r = chunk_next_item(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+	r = chunk_next_item(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 15);
+	r = chunk_next_item(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 18);
+	r = chunk_next_item(chunk, addr, &addr);
+	FAIL_IF(!r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_prev_item(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+	r = 0;
+	r |= chunk_set_byte_class(chunk, 10, CLASS_DATA); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 11, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 12, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 13, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 14, CLASS_CODE); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 15, CLASS_CODE); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 16, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 17, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 18, CLASS_DATA); /* HEAD */
+	r |= chunk_set_byte_class(chunk, 19, CLASS_TAIL);
+       	FAIL_IF_ERR(r);
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+
+	r = chunk_last_item(chunk, &addr);
+	FAIL_IF_ERR(r);	
+
+	r = chunk_prev_item(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 15);
+	r = chunk_prev_item(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+	r = chunk_prev_item(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+	r = chunk_prev_item(chunk, addr, &addr);
+	FAIL_IF(!r);
+	
+	free_bytechunk(chunk);
+	return 0;
+} 
+
+
+static int test_chunk_item_head(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 14, CLASS_DATA);
+	r |= chunk_set_range_class(chunk, 15, 19, CLASS_TAIL);
+       	FAIL_IF_ERR(r);
+
+	r = chunk_item_head(chunk, 18, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_item_end(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = chunk_set_byte_class(chunk, 14, CLASS_DATA);
+	r |= chunk_set_range_class(chunk, 15, 19, CLASS_TAIL);
+       	FAIL_IF_ERR(r);
+
+	r = chunk_item_end(chunk, 14, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 19);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_first_not_tail(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = chunk_first_not_tail(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_last_not_tail(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = 0;
+	r |= chunk_set_byte_class(chunk, 17, CLASS_CODE);
+	r |= chunk_set_byte_class(chunk, 18, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 19, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = chunk_last_not_tail(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 17);
+	return 0;
+}
+
+
+static int test_chunk_next_not_tail(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = 0;
+	r |= chunk_set_byte_class(chunk, 10, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 11, CLASS_DATA);
+	r |= chunk_set_byte_class(chunk, 12, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 13, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 14, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 15, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 16, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 17, CLASS_CODE);
+	r |= chunk_set_byte_class(chunk, 18, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 19, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = chunk_first_not_tail(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	r = chunk_next_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 11);
+
+	r = chunk_next_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	r = chunk_next_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 15);
+
+	r = chunk_next_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 16);
+
+	r = chunk_next_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 17);
+
+	r = chunk_next_not_tail(chunk, addr, &addr);
+	FAIL_IF(!r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_prev_not_tail(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = set_chunk_range_class_unknown(chunk, 10, 19);
+	FAIL_IF_ERR(r);
+	r = 0;
+	r |= chunk_set_byte_class(chunk, 10, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 11, CLASS_DATA);
+	r |= chunk_set_byte_class(chunk, 12, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 13, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 14, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 15, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 16, CLASS_UNKNOWN);
+	r |= chunk_set_byte_class(chunk, 17, CLASS_CODE);
+	r |= chunk_set_byte_class(chunk, 18, CLASS_TAIL);
+	r |= chunk_set_byte_class(chunk, 19, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = chunk_last_not_tail(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 17);
+
+	r = chunk_prev_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 16);
+
+	r = chunk_prev_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 15);
+
+	r = chunk_prev_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	r = chunk_prev_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 11);
+
+	r = chunk_prev_not_tail(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	r = chunk_prev_not_tail(chunk, addr, &addr);
+	FAIL_IF(!r);
+	
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_create_code_item(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	uint32_t class;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_create_code_item(chunk, 14, 17);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	r = chunk_get_byte_class(chunk, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_CODE);
+
+	r = chunk_item_end(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 17);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_create_data_item_byte(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	uint32_t class;
+	uint32_t datatype;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_create_data_item_byte(chunk, 14);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	r = chunk_get_byte_class(chunk, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+	
+	r = chunk_get_byte_datatype(chunk, addr, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_BYTE);
+
+	r = chunk_item_end(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_create_data_item_word(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	uint32_t class;
+	uint32_t datatype;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_create_data_item_word(chunk, 14);
+	FAIL_IF_ERR(r);
+
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	r = chunk_get_byte_class(chunk, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+
+	r = chunk_get_byte_datatype(chunk, addr, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_WORD);
+
+	r = chunk_item_end(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 15);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_create_data_item_dword(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	uint32_t class;
+	uint32_t datatype;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_create_data_item_dword(chunk, 14);
+	FAIL_IF_ERR(r);
+
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+
+	r = chunk_get_byte_class(chunk, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+
+	datatype = -1;	
+	r = chunk_get_byte_datatype(chunk, addr, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_DWORD);
+
+	r = chunk_item_end(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 17);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_create_data_item_qword(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	uint32_t class;
+	uint32_t datatype;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_create_data_item_qword(chunk, 11);
+	FAIL_IF_ERR(r);
+
+	r = chunk_first_item(chunk, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 11);
+
+	r = chunk_get_byte_class(chunk, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+
+	datatype = -1;	
+	r = chunk_get_byte_datatype(chunk, addr, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_QWORD);
+
+	r = chunk_item_end(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 18);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
 
 static struct test tests[] = {
 	{"newfree", test_newfree},
@@ -472,13 +1345,43 @@ static struct test tests[] = {
 	{"merge_chunks", test_merge_chunks},
 	{"expand_chunk_up", test_expand_chunk_up},
 	{"expand_chunk_down", test_expand_chunk_down},
+	/* VALUE FIELD */
 	{"copy_bytes_from_chunk", test_copy_bytes_from_chunk},
 	{"copy_bytes_from_chunk-invalid_value", test_copy_bytes_from_chunk_invalid_value},
 	{"copy_bytes_to_chunk", test_copy_bytes_to_chunk},
 	{"chunk_set_bytes", test_chunk_set_bytes},
+	/* CLASS FIELD */
 	{"chunk_get_byte_class", test_chunk_get_byte_class},
 	{"chunk_set_byte_class", test_chunk_set_byte_class},
+	{"is_chunk_range_class", test_is_chunk_range_class},
+	{"chunk_set_range_class", test_chunk_set_range_class},
 	{"is_chunk_range_class_unknown", test_is_chunk_range_class_unknown},
+	{"is_chunk_range_class_code", test_is_chunk_range_class_code},
+	{"is_chunk_range_class_data", test_is_chunk_range_class_data},
+	{"is_chunk_range_class_tail", test_is_chunk_range_class_tail},
+	{"set_chunk_range_class_unknown", test_set_chunk_range_class_unknown},
+	{"set_chunk_range_class_code", test_set_chunk_range_class_code},
+	{"set_chunk_range_class_data", test_set_chunk_range_class_data},
+	{"set_chunk_range_class_tail", test_set_chunk_range_class_tail},
+	/* DATATYPE FIELD */
+	{"chunk_get_byte_datatype", test_chunk_get_byte_datatype},
+	{"chunk_set_byte_datatype", test_chunk_set_byte_datatype},
+	/* ITEMS */
+	{"chunk_first_item", test_chunk_first_item},
+	{"chunk_last_item", test_chunk_last_item},
+	{"chunk_next_item", test_chunk_next_item},
+	{"chunk_prev_item", test_chunk_prev_item},
+	{"chunk_item_head", test_chunk_item_head},
+	{"chunk_item_end", test_chunk_item_end},
+	{"chunk_first_not_tail", test_chunk_first_not_tail},
+	{"chunk_last_not_tail", test_chunk_last_not_tail},
+	{"chunk_next_not_tail", test_chunk_next_not_tail},
+	{"chunk_prev_not_tail", test_chunk_prev_not_tail},
+	{"chunk_create_code_item", test_chunk_create_code_item},
+	{"chunk_create_data_item_byte", test_chunk_create_data_item_byte},
+	{"chunk_create_data_item_word", test_chunk_create_data_item_word},
+	{"chunk_create_data_item_dword", test_chunk_create_data_item_dword},
+	{"chunk_create_data_item_qword", test_chunk_create_data_item_qword},
 	{NULL, NULL},
 };
 
