@@ -55,10 +55,6 @@ int set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
 /* DATATYPE */
 int get_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t *datatype_out);
 int set_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t datatype);
-int set_bytes_datatype_byte(struct bytes *bytes, uint64_t addr);
-int set_bytes_datatype_word(struct bytes *bytes, uint64_t addr);
-int set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr);
-int set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr);
 
 /* ITEMS */
 

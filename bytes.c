@@ -426,27 +426,6 @@ int set_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t datatype){
 }
 
 
-/* TODO delete these */
-int
-set_bytes_datatype_byte(struct bytes *bytes, uint64_t addr){
-	assert(0);
-}
-
-int
-set_bytes_datatype_word(struct bytes *bytes, uint64_t addr){
-	assert(0);
-}
-
-int
-set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr){
-	assert(0);
-}
-
-int
-set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr){
-	assert(0);
-}
-
 
 
 /**********************   Items   ********************************************/
