@@ -103,6 +103,9 @@ test_load_file_elf(void){
 
 static int
 test_pre_analysis_elf(void){
+	FAIL_IF(1);
+	return -1;
+	/*
 	FILE *f;
 	struct workspace *ws;
 	uint32_t datatype;
@@ -129,8 +132,7 @@ test_pre_analysis_elf(void){
 	FAIL_IF(datatype != DATATYPE_WORD);
 
 	return 0;
-
-
+	*/
 }
 
 static struct test tests[] = {

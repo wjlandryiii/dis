@@ -89,9 +89,10 @@ load_file_elf(struct workspace *ws, FILE *f){
 
 int
 pre_analysis_elf(struct workspace *ws){
+	return -1;
+/*
 	uint64_t base_addr = 0x08048000;
 	register int r;
-
 	r = 0;
 	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
 	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
@@ -123,4 +124,5 @@ pre_analysis_elf(struct workspace *ws){
 	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shnum
 	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shstrndx
 	return r;
+*/
 }
