@@ -56,9 +56,11 @@ insert_chunk(struct bytechunk *node, struct bytechunk *chunk){
 		return chunk;
 	} else if(chunk->bc_first < node->bc_first){
 		chunk->bc_next = node;
+		node->bc_prev = chunk;
 		return chunk;
 	} else {
 		node->bc_next = insert_chunk(node->bc_next, chunk);
+		node->bc_next->bc_prev = node;
 		return node;
 	}
 }

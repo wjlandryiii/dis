@@ -178,6 +178,9 @@ merge_chunks(struct bytechunk *before, struct bytechunk *after){
 
 	before->bc_last = after->bc_last;
 	before->bc_next = after->bc_next;
+	if(before->bc_next){
+		before->bc_next->bc_prev = before;
+	}
 	before->bc_bytes = buf;
 	free_bytechunk(after);
 	return 0;

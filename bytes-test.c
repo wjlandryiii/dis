@@ -62,6 +62,19 @@ static int test_enable_bytes_forward(){
 		c = bytes_next_chunk(c);
 	}
 	FAIL_IF(c != NULL);
+
+	c = bytes_last_chunk(bytes);
+	for(i = 4; i >= 0; i--){
+		first = i * 5;
+		last = first + 2;
+
+		FAIL_IF(c == NULL);
+		FAIL_IF(c->bc_first != first);
+		FAIL_IF(c->bc_last != last);
+		c = bytes_prev_chunk(c);
+	}
+	FAIL_IF(c != NULL);
+
 	free_bytes(bytes);
 	return 0;
 }
@@ -92,6 +105,20 @@ static int test_enable_bytes_reverse(){
 		c = bytes_next_chunk(c);
 	}
 	FAIL_IF(c != NULL);
+
+	c = bytes_last_chunk(bytes);
+	for(i = 4; i >= 0; i--){
+		printf("%d\n", i);
+		first = i * 5;
+		last = first + 2;
+
+		FAIL_IF(c == NULL);
+		FAIL_IF(c->bc_first != first);
+		FAIL_IF(c->bc_last != last);
+		c = bytes_prev_chunk(c);
+	}
+	FAIL_IF(c != NULL);
+
 	free_bytes(bytes);
 	return 0;
 }
@@ -122,6 +149,20 @@ static int test_enable_bytes_middle(void){
 		c = bytes_next_chunk(c);
 	}
 	FAIL_IF(c != NULL);
+	
+	c = bytes_last_chunk(bytes);
+	for(i = 9; i >= 0; i--){
+		first = i*5;
+		last = first+2;
+
+		FAIL_IF(c == NULL);
+		FAIL_IF(c->bc_first != first);
+		FAIL_IF(c->bc_last != last);
+		c = bytes_prev_chunk(c);
+	}
+	FAIL_IF(c != NULL);
+	
+	
 	free_bytes(bytes);
 	return 0;
 }
@@ -180,6 +221,8 @@ static int test_enable_bytes_expand_down(void){
 static int test_enable_bytes_merge(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
+	struct bytechunk *prev_chunk;
+	struct bytechunk *next_chunk;
 	uint64_t first;
 	uint64_t last;
 	int i;
@@ -196,8 +239,10 @@ static int test_enable_bytes_merge(void){
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 0);
 	FAIL_IF(chunk->bc_last != 49);
-	chunk = bytes_next_chunk(chunk);
-	FAIL_IF(chunk != NULL);
+	next_chunk = bytes_next_chunk(chunk);
+	FAIL_IF(next_chunk != NULL);
+	prev_chunk = bytes_prev_chunk(chunk);
+	FAIL_IF(prev_chunk != NULL);
 	free_bytes(bytes);
 	return 0;
 }
