@@ -352,49 +352,6 @@ int bytes_set_byte_class(struct bytes *bytes, uint64_t addr, uint32_t class){
 	}
 }
 
-int
-set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last){
-	struct bytechunk *chunk;
-
-	chunk = find_chunk_containing_addr(bytes, first);
-	if(chunk){
-		return set_chunk_range_class_unknown(chunk, first, last);	
-	} else {
-		dis_errno = DER_INVADDR;
-		return -1;
-	}
-}
-
-
-
-int
-set_class_code(struct bytes *bytes, uint64_t first, uint64_t last){
-	struct bytechunk *chunk;
-
-	chunk = find_chunk_containing_addr(bytes, first);
-	if(chunk){
-		return set_chunk_range_class_code(chunk, first, last);
-	} else {
-		dis_errno = DER_INVADDR;
-		return -1;
-	}
-}
-
-
-
-int
-set_class_data(struct bytes *bytes, uint64_t first, uint64_t last){
-	struct bytechunk *chunk;
-
-	chunk = find_chunk_containing_addr(bytes, first);
-	if(chunk){
-		return set_chunk_range_class_data(chunk, first, last);
-	} else {
-		dis_errno = DER_INVADDR;
-		return -1;
-	}
-}
-
 
 
 /**************************   Datatype   *************************************/

@@ -27,6 +27,7 @@ int get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out);
 int set_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t fields);
 
 
+
 /* VALUE */
 int copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size);
 int bytes_get_byte(struct bytes *bytes, uint64_t addr, uint8_t *byte_out);
@@ -42,13 +43,10 @@ int bytes_put_dword(struct bytes *bytes, uint64_t addr, uint32_t value);
 int bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value); 
 
 
+
 /* CLASS */
 int bytes_get_byte_class(struct bytes *bytes, uint64_t addr, uint32_t *class_out);
 int bytes_set_byte_class(struct bytes *bytes, uint64_t addr, uint32_t class_);
-int set_class_code(struct bytes *bytes, uint64_t first, uint64_t last);
-int set_class_data(struct bytes *bytes, uint64_t first, uint64_t last);
-int set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
-
 
 
 

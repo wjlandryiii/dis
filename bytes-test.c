@@ -754,7 +754,6 @@ static int test_set_bytes_datatype(void){
 	FAIL_IF_ERR(r);
 
 	/* BYTE */
-	r = set_class_unknown(bytes, 10, 19);
 	r = set_bytes_datatype(bytes, 10, DATATYPE_BYTE);
 	FAIL_IF_ERR(r);
 	r = get_bytes_datatype(bytes, 10, &datatype);
@@ -762,7 +761,6 @@ static int test_set_bytes_datatype(void){
 	FAIL_IF(datatype != DATATYPE_BYTE);
 
 	/* WORD */
-	r = set_class_unknown(bytes, 10, 19);
 	r = set_bytes_datatype(bytes, 10, DATATYPE_WORD);
 	FAIL_IF_ERR(r);
 	r = get_bytes_datatype(bytes, 10, &datatype);
@@ -770,7 +768,6 @@ static int test_set_bytes_datatype(void){
 	FAIL_IF(datatype != DATATYPE_WORD);
 
 	/* DWORD */
-	r = set_class_unknown(bytes, 10, 19);
 	r = set_bytes_datatype(bytes, 10, DATATYPE_DWORD);
 	FAIL_IF_ERR(r);
 	r = get_bytes_datatype(bytes, 10, &datatype);
@@ -778,7 +775,6 @@ static int test_set_bytes_datatype(void){
 	FAIL_IF(datatype != DATATYPE_DWORD);
 	
 	/* QWORD */
-	r = set_class_unknown(bytes, 10, 19);
 	r = set_bytes_datatype(bytes, 10, DATATYPE_QWORD);
 	FAIL_IF_ERR(r);
 	r = get_bytes_datatype(bytes, 10, &datatype);
