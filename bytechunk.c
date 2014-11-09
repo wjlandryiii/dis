@@ -136,7 +136,7 @@ chunk_get_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t *fields_o
 }
 
 int
-chunk_set_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields){
+chunk_put_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields){
 	int i;
 
 	if(chunk_contains_addr(chunk, addr)){
@@ -262,7 +262,7 @@ int chunk_get_byte(struct bytechunk *chunk, uint64_t addr, uint8_t *byte_out){
 	}
 }
 
-int chunk_set_byte(struct bytechunk *chunk, uint64_t addr, uint8_t byte){
+int chunk_put_byte(struct bytechunk *chunk, uint64_t addr, uint8_t byte){
 	uint32_t fields;
 	int i;
 
@@ -281,7 +281,7 @@ int chunk_set_byte(struct bytechunk *chunk, uint64_t addr, uint8_t byte){
 
 
 int
-copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr,
+copy_from_chunk(struct bytechunk *chunk, uint64_t addr,
 		uint8_t *buf, size_t size){
 	int offset;
 	uint32_t flags;
@@ -309,7 +309,7 @@ copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr,
 
 
 int
-copy_bytes_to_chunk(struct bytechunk *chunk, uint64_t addr,
+copy_to_chunk(struct bytechunk *chunk, uint64_t addr,
 		uint8_t *buf, size_t size){
 	int offset;
 	uint32_t flags;
@@ -331,7 +331,7 @@ copy_bytes_to_chunk(struct bytechunk *chunk, uint64_t addr,
 }
 
 int
-chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last){
+chunk_set_range_values(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last){
 	uint32_t flags;
 	int start;
 	int stop;
@@ -358,7 +358,7 @@ int chunk_get_word(struct bytechunk *chunk, uint64_t addr, uint16_t *word_out){
 	uint16_t word;
 	register int r;
 
-	r = copy_bytes_from_chunk(chunk, addr, (void *)&word, sizeof(word));
+	r = copy_from_chunk(chunk, addr, (void *)&word, sizeof(word));
 	if(!r){
 		if(word_out){
 			*word_out = word;
@@ -372,7 +372,7 @@ int chunk_get_dword(struct bytechunk *chunk, uint64_t addr, uint32_t *dword_out)
 	uint32_t dword;
 	register int r;
 
-	r = copy_bytes_from_chunk(chunk, addr, (void *)&dword, sizeof(dword));
+	r = copy_from_chunk(chunk, addr, (void *)&dword, sizeof(dword));
 	if(!r){
 		if(dword_out){
 			*dword_out = dword;
@@ -386,7 +386,7 @@ int chunk_get_qword(struct bytechunk *chunk, uint64_t addr, uint64_t *qword_out)
 	uint64_t qword;
 	register int r;
 
-	r = copy_bytes_from_chunk(chunk, addr, (void *)&qword, sizeof(qword));
+	r = copy_from_chunk(chunk, addr, (void *)&qword, sizeof(qword));
 	if(!r){
 		if(qword_out){
 			*qword_out = qword;
@@ -397,16 +397,16 @@ int chunk_get_qword(struct bytechunk *chunk, uint64_t addr, uint64_t *qword_out)
 	}
 }
 
-int chunk_set_word(struct bytechunk *chunk, uint64_t addr, uint16_t word){
-	return copy_bytes_to_chunk(chunk, addr, (void *)&word, sizeof(word));
+int chunk_put_word(struct bytechunk *chunk, uint64_t addr, uint16_t word){
+	return copy_to_chunk(chunk, addr, (void *)&word, sizeof(word));
 }
 
-int chunk_set_dword(struct bytechunk *chunk, uint64_t addr, uint32_t dword){
-	return copy_bytes_to_chunk(chunk, addr, (void *)&dword, sizeof(dword));
+int chunk_put_dword(struct bytechunk *chunk, uint64_t addr, uint32_t dword){
+	return copy_to_chunk(chunk, addr, (void *)&dword, sizeof(dword));
 }
 
-int chunk_set_qword(struct bytechunk *chunk, uint64_t addr, uint64_t qword){
-	return copy_bytes_to_chunk(chunk, addr, (void *)&qword, sizeof(qword));
+int chunk_put_qword(struct bytechunk *chunk, uint64_t addr, uint64_t qword){
+	return copy_to_chunk(chunk, addr, (void *)&qword, sizeof(qword));
 }
 
 
@@ -507,19 +507,19 @@ int chunk_set_range_class(struct bytechunk *chunk, uint64_t first, uint64_t last
 	}
 }
 
-int set_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last){
+int chunk_set_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last){
 	return chunk_set_range_class(chunk, first, last, CLASS_UNKNOWN);
 }
 
-int set_chunk_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last){
+int chunk_set_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last){
 	return chunk_set_range_class(chunk, first, last, CLASS_CODE);
 }
 
-int set_chunk_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last){
+int chunk_set_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last){
 	return chunk_set_range_class(chunk, first, last, CLASS_DATA);
 }
 
-int set_chunk_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last){
+int chunk_set_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last){
 	return chunk_set_range_class(chunk, first, last, CLASS_TAIL);
 }
 
@@ -543,7 +543,7 @@ int chunk_get_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t *da
 }
 
 int
-chunk_set_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t datatype){
+chunk_put_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t datatype){
 	uint32_t flags;
 	int offset;
 
@@ -845,7 +845,7 @@ int chunk_create_code_item(struct bytechunk *chunk, uint64_t first, uint64_t las
 		}
 
 		if(first + 1 <= last){
-			r = set_chunk_range_class_tail(chunk, first+1, last);
+			r = chunk_set_range_class_tail(chunk, first+1, last);
 			if(r){
 				return r;
 			}
@@ -913,7 +913,7 @@ int chunk_create_data_item_dword(struct bytechunk *chunk, uint64_t addr){
 			fields = set_class_field(fields, CLASS_DATA);
 			fields = set_datatype_field(fields, DATATYPE_DWORD);
 			chunk->bc_bytes[i] = fields;
-			return set_chunk_range_class_tail(chunk, addr+1, addr+3);
+			return chunk_set_range_class_tail(chunk, addr+1, addr+3);
 		} else {
 			dis_errno = DER_NOTUNKNOWN;
 			return -1;
@@ -935,7 +935,7 @@ int chunk_create_data_item_qword(struct bytechunk *chunk, uint64_t addr){
 			fields = set_class_field(fields, CLASS_DATA);
 			fields = set_datatype_field(fields, DATATYPE_QWORD);
 			chunk->bc_bytes[i] = fields;
-			return set_chunk_range_class_tail(chunk, addr+1, addr+7);
+			return chunk_set_range_class_tail(chunk, addr+1, addr+7);
 		} else {
 			dis_errno = DER_NOTUNKNOWN;
 			return -1;

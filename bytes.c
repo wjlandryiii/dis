@@ -169,7 +169,7 @@ int set_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t fields){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_set_byte_fields(chunk, addr, fields);
+		return chunk_put_byte_fields(chunk, addr, fields);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -185,7 +185,7 @@ int set_bytes(struct bytes *bytes, uint8_t c, uint64_t first, uint64_t last){
 
 	chunk = find_chunk_containing_addr(bytes, first);
 	if(chunk){
-		return chunk_set_bytes(chunk, c, first, last);
+		return chunk_set_range_values(chunk, c, first, last);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -199,7 +199,7 @@ copy_from_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return copy_bytes_from_chunk(chunk, addr, buf, size);
+		return copy_from_chunk(chunk, addr, buf, size);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -265,7 +265,7 @@ copy_to_bytes(struct bytes *bytes, uint64_t addr, uint8_t *buf, size_t size){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return copy_bytes_to_chunk(chunk, addr, buf, size);
+		return copy_to_chunk(chunk, addr, buf, size);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -278,7 +278,7 @@ bytes_put_byte(struct bytes *bytes, uint64_t addr, uint8_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_set_byte(chunk, addr, value);
+		return chunk_put_byte(chunk, addr, value);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -291,7 +291,7 @@ bytes_put_word(struct bytes *bytes, uint64_t addr, uint16_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_set_word(chunk, addr, value);
+		return chunk_put_word(chunk, addr, value);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -304,7 +304,7 @@ bytes_put_dword(struct bytes *bytes, uint64_t addr, uint32_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_set_dword(chunk, addr, value);
+		return chunk_put_dword(chunk, addr, value);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -317,7 +317,7 @@ bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_set_qword(chunk, addr, value);
+		return chunk_put_qword(chunk, addr, value);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;
@@ -375,7 +375,7 @@ int set_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t datatype){
 
 	chunk = find_chunk_containing_addr(bytes, addr);
 	if(chunk){
-		return chunk_set_byte_datatype(chunk, addr, datatype);
+		return chunk_put_byte_datatype(chunk, addr, datatype);
 	} else {
 		dis_errno = DER_INVADDR;
 		return -1;

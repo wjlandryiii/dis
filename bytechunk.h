@@ -35,30 +35,26 @@ int chunk_contains_addr(struct bytechunk *chunk, uint64_t addr);
 int chunk_contains_range(struct bytechunk *chunk, uint64_t first, uint64_t last);
 
 int chunk_get_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t *flags);
-int chunk_set_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields);
+int chunk_put_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields);
 
 int merge_chunks(struct bytechunk *before, struct bytechunk *after);
 int expand_chunk_up(struct bytechunk *chunk, uint64_t last); 
 int expand_chunk_down(struct bytechunk *chunk, uint64_t first);
 
 
-
 /* VALUE FIELD */
-/* TODO: rename copy_bytes_from/to_chunk -> copy_from/to_chunk */
 int chunk_get_byte(struct bytechunk *chunk, uint64_t addr, uint8_t *byte_out);
-int chunk_set_byte(struct bytechunk *chunk, uint64_t addr, uint8_t byte);
-int copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
-int copy_bytes_to_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
-/* TODO: rename chunk_set_bytes -> chunk_set_range_values */
-int chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last);
+int chunk_put_byte(struct bytechunk *chunk, uint64_t addr, uint8_t byte);
+int copy_from_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
+int copy_to_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
+int chunk_set_range_values(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last);
 
 int chunk_get_word(struct bytechunk *chunk, uint64_t addr, uint16_t *word_out);
 int chunk_get_dword(struct bytechunk *chunk, uint64_t addr, uint32_t *dword_out);
 int chunk_get_qword(struct bytechunk *chunk, uint64_t addr, uint64_t *qword_out);
-/* TODO: s/set/put */
-int chunk_set_word(struct bytechunk *chunk, uint64_t addr, uint16_t word);
-int chunk_set_dword(struct bytechunk *chunk, uint64_t addr, uint32_t dword);
-int chunk_set_qword(struct bytechunk *chunk, uint64_t addr, uint64_t qword);
+int chunk_put_word(struct bytechunk *chunk, uint64_t addr, uint16_t word);
+int chunk_put_dword(struct bytechunk *chunk, uint64_t addr, uint32_t dword);
+int chunk_put_qword(struct bytechunk *chunk, uint64_t addr, uint64_t qword);
 
 
 
@@ -74,18 +70,17 @@ int is_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64
 int is_chunk_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int is_chunk_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int is_chunk_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last);
-/* TODO: rename set_chunk_range_class_* -> chunk_set_range_clas_* */
-int set_chunk_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last);
-int set_chunk_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last);
-int set_chunk_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last);
-int set_chunk_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last);
+int chunk_set_range_class_unknown(struct bytechunk *chunk, uint64_t first, uint64_t last);
+int chunk_set_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t last);
+int chunk_set_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last);
+int chunk_set_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last);
 
 
 
 
 /* DATATYPE FIELD */
 int chunk_get_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t *datatype_out);
-int chunk_set_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t datatype);
+int chunk_put_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t datatype);
 
 
 
