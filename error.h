@@ -15,6 +15,7 @@ enum error_numbers {
 	DER_INVVALUE,
 	DER_INVPARAM,
 	DER_NOTUNKNOWN,
+	DER_NOTFOUND,
 	DER_NERRORS,
 };
 
