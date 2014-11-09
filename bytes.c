@@ -170,7 +170,7 @@ struct bytechunk *find_chunk_containing_addr(struct bytes *bytes, uint64_t addr)
 }
 
 
-int get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out){
+int bytes_get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out){
 	struct bytechunk *chunk;
 
 	chunk = find_chunk_containing_addr(bytes, addr);
@@ -183,7 +183,7 @@ int get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out){
 }
 
 
-int set_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t fields){
+int bytes_set_bytes_fields(struct bytes *bytes, uint64_t addr, uint32_t fields){
 	struct bytechunk *chunk;
 
 	chunk = find_chunk_containing_addr(bytes, addr);

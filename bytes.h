@@ -25,8 +25,8 @@ struct bytechunk *bytes_prev_chunk(struct bytechunk *chunk);
 int enable_bytes(struct bytes *bytes, uint64_t first, uint64_t last);
 /* TODO int disable_bytes(struct bytes *bytes, uint64_t first, uint64_t last); */
 
-int get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out);
-int set_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t fields);
+int bytes_get_byte_fields(struct bytes *bytes, uint64_t addr, uint32_t *fields_out);
+int bytes_set_bytes_fields(struct bytes *bytes, uint64_t addr, uint32_t fields);
 
 
 

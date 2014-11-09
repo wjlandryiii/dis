@@ -246,7 +246,7 @@ static int test_enable_bytes_merge(void){
 	return 0;
 }
 
-static int test_get_byte_fields(void){
+static int test_bytes_get_byte_fields(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint32_t fields;
@@ -288,33 +288,33 @@ static int test_get_byte_fields(void){
 	chunk = bytes_next_chunk(chunk);
 	FAIL_IF(chunk != NULL);
 
-	r = get_byte_fields(bytes, 0, &fields);
+	r = bytes_get_byte_fields(bytes, 0, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x11111111);
-	r = get_byte_fields(bytes, 4, &fields);
+	r = bytes_get_byte_fields(bytes, 4, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x22222222);
-	r = get_byte_fields(bytes, 9, &fields);
+	r = bytes_get_byte_fields(bytes, 9, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x33333333);
 
-	r = get_byte_fields(bytes, 20, &fields);
+	r = bytes_get_byte_fields(bytes, 20, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x44444444);
-	r = get_byte_fields(bytes, 24, &fields);
+	r = bytes_get_byte_fields(bytes, 24, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x55555555);
-	r = get_byte_fields(bytes, 29, &fields);
+	r = bytes_get_byte_fields(bytes, 29, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x66666666);
 	
-	r = get_byte_fields(bytes, 40, &fields);
+	r = bytes_get_byte_fields(bytes, 40, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x77777777);
-	r = get_byte_fields(bytes, 44, &fields);
+	r = bytes_get_byte_fields(bytes, 44, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x88888888);
-	r = get_byte_fields(bytes, 49, &fields);
+	r = bytes_get_byte_fields(bytes, 49, &fields);
 	FAIL_IF(r != 0);
 	FAIL_IF(fields != 0x99999999);
 
@@ -323,7 +323,7 @@ static int test_get_byte_fields(void){
 }
 
 
-static int test_set_byte_fields(void){
+static int test_bytes_set_bytes_fields(void){
 	struct bytes *bytes;
 	uint32_t fields;
 	uint32_t ar[9][2] = {
@@ -350,12 +350,12 @@ static int test_set_byte_fields(void){
 	FAIL_IF(r != 0);
 
 	for(i = 0; i < 9; i++){
-		r = set_byte_fields(bytes, ar[i][0], ar[i][1]);
+		r = bytes_set_bytes_fields(bytes, ar[i][0], ar[i][1]);
 		FAIL_IF(r != 0);
 	}
 	
 	for(i = 0; i < 9; i++){
-		r = get_byte_fields(bytes, ar[i][0], &fields);
+		r = bytes_get_byte_fields(bytes, ar[i][0], &fields);
 		FAIL_IF(r != 0);
 		FAIL_IF(ar[i][1] != fields);
 	}
@@ -386,7 +386,7 @@ static int test_copy_from_bytes(void){
 	FAIL_IF(r != 0);
 
 	for(i = 0; i < sizeof(src); i++){
-		r = set_byte_fields(bytes, 10+i, set_value_field(src[i], VALUE_VALID));
+		r = bytes_set_bytes_fields(bytes, 10+i, set_value_field(src[i], VALUE_VALID));
 		FAIL_IF(r != 0);
 	}
 
@@ -411,7 +411,7 @@ static int test_bytes_get_byte(void){
 	FAIL_IF(r != 0);
 
 	r = 0;	
-	r |= set_byte_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
 	FAIL_IF(r != 0);
 
 	byte = 0;
@@ -436,8 +436,8 @@ static int test_bytes_get_word(void){
 	FAIL_IF(r != 0);
 
 	r = 0;	
-	r |= set_byte_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
-	r |= set_byte_fields(bytes, 11, set_value_field(0xCD, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 11, set_value_field(0xCD, VALUE_VALID));
 	FAIL_IF(r != 0);
 
 	word = 0;
@@ -461,10 +461,10 @@ static int test_bytes_get_dword(void){
 	FAIL_IF(r != 0);
 
 	r = 0;	
-	r |= set_byte_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
-	r |= set_byte_fields(bytes, 11, set_value_field(0xCD, VALUE_VALID));
-	r |= set_byte_fields(bytes, 12, set_value_field(0xEF, VALUE_VALID));
-	r |= set_byte_fields(bytes, 13, set_value_field(0x01, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 11, set_value_field(0xCD, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 12, set_value_field(0xEF, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 13, set_value_field(0x01, VALUE_VALID));
 	FAIL_IF(r != 0);
 
 	dword = 0;
@@ -488,14 +488,14 @@ static int test_bytes_get_qword(void){
 	FAIL_IF(r != 0);
 
 	r = 0;	
-	r |= set_byte_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
-	r |= set_byte_fields(bytes, 11, set_value_field(0xCD, VALUE_VALID));
-	r |= set_byte_fields(bytes, 12, set_value_field(0xEF, VALUE_VALID));
-	r |= set_byte_fields(bytes, 13, set_value_field(0x01, VALUE_VALID));
-	r |= set_byte_fields(bytes, 14, set_value_field(0x02, VALUE_VALID));
-	r |= set_byte_fields(bytes, 15, set_value_field(0x03, VALUE_VALID));
-	r |= set_byte_fields(bytes, 16, set_value_field(0x04, VALUE_VALID));
-	r |= set_byte_fields(bytes, 17, set_value_field(0x05, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 10, set_value_field(0xAB, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 11, set_value_field(0xCD, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 12, set_value_field(0xEF, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 13, set_value_field(0x01, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 14, set_value_field(0x02, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 15, set_value_field(0x03, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 16, set_value_field(0x04, VALUE_VALID));
+	r |= bytes_set_bytes_fields(bytes, 17, set_value_field(0x05, VALUE_VALID));
 	FAIL_IF(r != 0);
 
 	qword = 0;
@@ -667,28 +667,28 @@ static int test_bytes_get_byte_class(void){
 	FAIL_IF_ERR(r);
 
 	/* DATA */
-	r = set_byte_fields(bytes, 10, set_class_field(0, CLASS_DATA));
+	r = bytes_set_bytes_fields(bytes, 10, set_class_field(0, CLASS_DATA));
 	FAIL_IF_ERR(r);
 	r = bytes_get_byte_class(bytes, 10, &class);
 	FAIL_IF_ERR(r);
 	FAIL_IF(class != CLASS_DATA);
 
 	/* CODE */
-	r = set_byte_fields(bytes, 10, set_class_field(0, CLASS_CODE));
+	r = bytes_set_bytes_fields(bytes, 10, set_class_field(0, CLASS_CODE));
 	FAIL_IF_ERR(r);
 	r = bytes_get_byte_class(bytes, 10, &class);
 	FAIL_IF_ERR(r);
 	FAIL_IF(class != CLASS_CODE);
 
 	/* TAIL */
-	r = set_byte_fields(bytes, 10, set_class_field(0, CLASS_TAIL));
+	r = bytes_set_bytes_fields(bytes, 10, set_class_field(0, CLASS_TAIL));
 	FAIL_IF_ERR(r);
 	r = bytes_get_byte_class(bytes, 10, &class);
 	FAIL_IF_ERR(r);
 	FAIL_IF(class != CLASS_TAIL);
 
 	/* UNKNOWN */
-	r = set_byte_fields(bytes, 10, set_class_field(0, CLASS_UNKNOWN));
+	r = bytes_set_bytes_fields(bytes, 10, set_class_field(0, CLASS_UNKNOWN));
 	FAIL_IF_ERR(r);
 	r = bytes_get_byte_class(bytes, 10, &class);
 	FAIL_IF_ERR(r);
@@ -804,7 +804,7 @@ static int test_get_bytes_datatype(void){
 	fields = 0;
 	fields = set_class_field(fields, CLASS_DATA);
 	fields = set_datatype_field(fields, DATATYPE_BYTE);
-	r = set_byte_fields(bytes, 10, fields);
+	r = bytes_set_bytes_fields(bytes, 10, fields);
 	FAIL_IF_ERR(r);
 
 	datatype = 0;
@@ -816,7 +816,7 @@ static int test_get_bytes_datatype(void){
 	fields = 0;
 	fields = set_class_field(fields, CLASS_DATA);
 	fields = set_datatype_field(fields, DATATYPE_WORD);
-	r = set_byte_fields(bytes, 10, fields);
+	r = bytes_set_bytes_fields(bytes, 10, fields);
 	FAIL_IF(r != 0);
 	
 	datatype = 0;
@@ -828,7 +828,7 @@ static int test_get_bytes_datatype(void){
 	fields = 0;
 	fields = set_class_field(fields, CLASS_DATA);
 	fields = set_datatype_field(fields, DATATYPE_DWORD);
-	r = set_byte_fields(bytes, 10, fields);
+	r = bytes_set_bytes_fields(bytes, 10, fields);
 	FAIL_IF(r != 0);
 	
 	datatype = 0;
@@ -840,7 +840,7 @@ static int test_get_bytes_datatype(void){
 	fields = 0;
 	fields = set_class_field(fields, CLASS_DATA);
 	fields = set_datatype_field(fields, DATATYPE_QWORD);
-	r = set_byte_fields(bytes, 10, fields);
+	r = bytes_set_bytes_fields(bytes, 10, fields);
 	FAIL_IF(r != 0);
 	
 	datatype = 0;
@@ -1228,11 +1228,11 @@ static int test_bytes_item_head_data(void){
 	r = enable_bytes(bytes, 10, 19);
 	FAIL_IF_ERR(r);
 
-	set_byte_fields(bytes, 10, set_class_field(0, CLASS_DATA));
-	set_byte_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 10, set_class_field(0, CLASS_DATA));
+	bytes_set_bytes_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
 
 	addr = 0;
 	r = bytes_item_head(bytes, 10, &addr);
@@ -1259,11 +1259,11 @@ static int test_bytes_item_head_code(void){
 	r = enable_bytes(bytes, 10, 19);
 	FAIL_IF_ERR(r);
 
-	set_byte_fields(bytes, 10, set_class_field(0, CLASS_CODE));
-	set_byte_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 10, set_class_field(0, CLASS_CODE));
+	bytes_set_bytes_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
 
 	addr = 0;
 	r = bytes_item_head(bytes, 10, &addr);
@@ -1290,11 +1290,11 @@ static int test_bytes_item_end(void){
 	r = enable_bytes(bytes, 10, 19);
 	FAIL_IF_ERR(r);
 
-	set_byte_fields(bytes, 10, set_class_field(0, CLASS_DATA));
-	set_byte_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 10, set_class_field(0, CLASS_DATA));
+	bytes_set_bytes_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
 
 	addr = 0;
 	r = bytes_item_end(bytes, 10, &addr);
@@ -1306,11 +1306,11 @@ static int test_bytes_item_end(void){
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 14);
 
-	set_byte_fields(bytes, 15, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 16, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 17, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 18, set_class_field(0, CLASS_TAIL));
-	set_byte_fields(bytes, 19, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 15, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 16, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 17, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 18, set_class_field(0, CLASS_TAIL));
+	bytes_set_bytes_fields(bytes, 19, set_class_field(0, CLASS_TAIL));
 	
 	addr = 0;
 	r = bytes_item_end(bytes, 10, &addr);
@@ -1640,8 +1640,8 @@ static struct test tests[] = {
 	{"enable_bytes-expand_up", test_enable_bytes_expand_up},
 	{"enable_bytes-expand_down", test_enable_bytes_expand_down},
 	{"enable_bytes-merge", test_enable_bytes_merge},
-	{"get_byte_fields", test_get_byte_fields},
-	{"set_byte_fields", test_set_byte_fields},
+	{"bytes_get_byte_fields", test_bytes_get_byte_fields},
+	{"bytes_set_bytes_fields", test_bytes_set_bytes_fields},
 	/* Value */
 	{"copy_from_bytes", test_copy_from_bytes},
 	{"bytes_get_byte", test_bytes_get_byte},
