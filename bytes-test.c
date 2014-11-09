@@ -108,7 +108,6 @@ static int test_enable_bytes_reverse(){
 
 	c = bytes_last_chunk(bytes);
 	for(i = 4; i >= 0; i--){
-		printf("%d\n", i);
 		first = i * 5;
 		last = first + 2;
 
@@ -721,6 +720,71 @@ static int test_bytes_set_byte_class(void){
 	return 0;
 }
 
+static int test_bytes_set_range_class(void){
+	struct bytes *bytes;
+	uint32_t class;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = 0;
+	r |= bytes_set_range_class(bytes, 10, 12, CLASS_CODE);
+	r |= bytes_set_range_class(bytes, 13, 15, CLASS_DATA);
+	r |= bytes_set_range_class(bytes, 16, 19, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 10, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_CODE);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 11, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_CODE);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 13, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 14, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+	
+	class = 0;
+	r = bytes_get_byte_class(bytes, 15, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 16, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_TAIL);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 17, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_TAIL);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 18, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_TAIL);
+
+	class = 0;
+	r = bytes_get_byte_class(bytes, 19, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_TAIL);
+
+	free_bytes(bytes);
+	return 0;
+}
+
 /*****************************   Datatype   **********************************/
 
 
@@ -834,6 +898,300 @@ static int test_set_bytes_datatype(void){
 
 /**********************************   Items   ********************************/
 
+static int test_bytes_first_addr(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_addr(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	free_bytes(bytes);
+	return 0;
+}
+static int test_bytes_last_addr(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_last_addr(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 19);
+
+	free_bytes(bytes);
+	return 0;
+}
+static int test_bytes_next_addr(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = enable_bytes(bytes, 30, 39);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_next_addr(bytes, 19, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 30);
+
+	dis_errno = 0;
+	addr = 0;
+	r = bytes_next_addr(bytes, 39, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	free_bytes(bytes);
+	return 0;
+}
+static int test_bytes_prev_addr(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = enable_bytes(bytes, 30, 39);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_prev_addr(bytes, 30, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 19);
+
+	dis_errno = 0;
+	addr = 0;
+	r = bytes_prev_addr(bytes, 10, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+
+static int test_bytes_first_item(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 30, 39);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+
+	dis_errno = 0;
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+	
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 52, CLASS_DATA);
+	FAIL_IF_ERR(r);
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 52);
+
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 39, CLASS_CODE);
+	FAIL_IF_ERR(r);
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 39);
+
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 10, CLASS_CODE);
+	FAIL_IF_ERR(r);
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_bytes_last_item(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 30, 39);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+
+	dis_errno = 0;
+	r = bytes_last_item(bytes, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 10, CLASS_CODE);
+	FAIL_IF_ERR(r);
+	r = bytes_last_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 11, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+	r = bytes_last_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 33, CLASS_DATA);
+	FAIL_IF_ERR(r);
+	r = bytes_last_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 33);
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 34, CLASS_TAIL);
+	FAIL_IF_ERR(r);
+	r = bytes_last_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 33);
+
+	addr = 0;
+	r = bytes_set_byte_class(bytes, 59, CLASS_DATA);
+	FAIL_IF_ERR(r);
+	r = bytes_last_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 59);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+
+static int test_bytes_next_item(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 30, 39);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 70, 79);
+	FAIL_IF_ERR(r);
+
+	r = 0;
+	r |= bytes_set_byte_class(bytes, 11, CLASS_DATA);
+	r |= bytes_set_byte_class(bytes, 12, CLASS_TAIL);
+	r |= bytes_set_byte_class(bytes, 19, CLASS_CODE);
+	r |= bytes_set_byte_class(bytes, 52, CLASS_CODE);
+	r |= bytes_set_byte_class(bytes, 53, CLASS_TAIL);
+	r |= bytes_set_byte_class(bytes, 57, CLASS_CODE);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 11);
+	
+	r = bytes_next_item(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 19);
+
+	r = bytes_next_item(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 52);
+
+	r = bytes_next_item(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 57);
+
+	dis_errno = 0;	
+	r = bytes_next_item(bytes, addr, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_bytes_prev_item(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 30, 39);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+	r = enable_bytes(bytes, 70, 79);
+	FAIL_IF_ERR(r);
+
+	r = 0;
+	r |= bytes_set_byte_class(bytes, 31, CLASS_DATA);
+	r |= bytes_set_byte_class(bytes, 32, CLASS_TAIL);
+	r |= bytes_set_byte_class(bytes, 39, CLASS_CODE);
+	r |= bytes_set_byte_class(bytes, 72, CLASS_CODE);
+	r |= bytes_set_byte_class(bytes, 73, CLASS_TAIL);
+	r |= bytes_set_byte_class(bytes, 77, CLASS_CODE);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_last_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 77);
+	
+	r = bytes_prev_item(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 72);
+	
+	r = bytes_prev_item(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 39);
+	
+	r = bytes_prev_item(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 31);
+
+	dis_errno = 0;	
+	r = bytes_prev_item(bytes, addr, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	free_bytes(bytes);
+	return 0;
+}
 
 
 static int test_bytes_item_head_unknown(void){
@@ -968,6 +1326,311 @@ static int test_bytes_item_end(void){
 	return 0;
 }
 
+
+static int test_bytes_first_not_tail(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= bytes_set_byte_class(bytes, 10, CLASS_DATA);
+	r |= bytes_set_byte_class(bytes, 11, CLASS_UNKNOWN);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_not_tail(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_bytes_last_not_tail(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 70, 79);
+	r |= bytes_set_byte_class(bytes, 79, CLASS_UNKNOWN);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_last_not_tail(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 79);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_bytes_next_not_tail(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	addr = 0;
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= enable_bytes(bytes, 50, 59);
+	r |= bytes_set_byte_class(bytes, 10, CLASS_DATA);
+	r |= bytes_set_range_class(bytes, 11, 19, CLASS_TAIL);
+	r |= bytes_set_range_class(bytes, 30, 39, CLASS_UNKNOWN);
+	r |= bytes_set_byte_class(bytes, 52, CLASS_CODE);
+	r |= bytes_set_range_class(bytes, 53, 59, CLASS_TAIL);
+	r |= bytes_first_not_tail(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 30);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 31);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 32);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 33);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 34);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 35);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 36);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 37);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 38);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 39);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 50);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 51);
+	r = bytes_next_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 52);
+	dis_errno = 0;
+	r = bytes_next_not_tail(bytes, addr, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_bytes_prev_not_tail(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	addr = 0;
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= enable_bytes(bytes, 50, 59);
+	r |= bytes_set_byte_class(bytes, 10, CLASS_DATA);
+	r |= bytes_set_range_class(bytes, 11, 19, CLASS_TAIL);
+	r |= bytes_set_range_class(bytes, 30, 39, CLASS_UNKNOWN);
+	r |= bytes_set_byte_class(bytes, 52, CLASS_CODE);
+	r |= bytes_set_range_class(bytes, 53, 59, CLASS_TAIL);
+	r |= bytes_last_not_tail(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 52);
+
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 51);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 50);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 39);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 38);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 37);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 36);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 35);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 34);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 33);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 32);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 31);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 30);
+	r = bytes_prev_not_tail(bytes, addr, &addr); FAIL_IF_ERR(r); FAIL_IF(addr != 10);
+	dis_errno = 0;
+	r = bytes_prev_not_tail(bytes, addr, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_create_code_item(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	uint32_t class;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+
+	r = bytes_create_code_item(bytes, 34, 37);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 34);
+	r = bytes_get_byte_class(bytes, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_CODE);
+	r = bytes_next_not_tail(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 38);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_create_data_item_byte(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	uint32_t class;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+
+	r = bytes_create_data_item_byte(bytes, 34);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 34);
+	r = bytes_get_byte_class(bytes, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+	r = bytes_next_not_tail(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 35);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+
+static int test_create_data_item_word(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	uint32_t class;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+
+	r = bytes_create_data_item_word(bytes, 34);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 34);
+	r = bytes_get_byte_class(bytes, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+	r = bytes_next_not_tail(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 36);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+
+static int test_create_data_item_dword(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	uint32_t class;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+
+	r = bytes_create_data_item_dword(bytes, 34);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 34);
+	r = bytes_get_byte_class(bytes, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+	r = bytes_next_not_tail(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 38);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+
+static int test_create_data_item_qword(void){
+	struct bytes *bytes;
+	uint64_t addr;
+	uint32_t class;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = 0;
+	r |= enable_bytes(bytes, 10, 19);
+	r |= enable_bytes(bytes, 30, 39);
+	r |= enable_bytes(bytes, 50, 59);
+	FAIL_IF_ERR(r);
+
+	r = bytes_create_data_item_qword(bytes, 31);
+	FAIL_IF_ERR(r);
+
+	addr = 0;
+	r = bytes_first_item(bytes, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 31);
+	r = bytes_get_byte_class(bytes, addr, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_DATA);
+	r = bytes_next_not_tail(bytes, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 39);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+
 static struct test tests[] = {
 	{"newfree", test_newfree},
 	{"enable_bytes", test_enable_bytes},
@@ -994,14 +1657,34 @@ static struct test tests[] = {
 	/* Class */
 	{"bytes_get_byte_class", test_bytes_get_byte_class},
 	{"bytes_set_byte_class", test_bytes_set_byte_class},
+	{"bytes_set_range_class", test_bytes_set_range_class},
 	/* Datatype */
 	{"get_bytes_datatype",test_get_bytes_datatype},
 	{"set_bytes_datatype", test_set_bytes_datatype},
 	/* Items */
+	{"bytes_first_addr", test_bytes_first_addr},
+	{"bytes_last_addr", test_bytes_last_addr},
+	{"bytes_next_addr", test_bytes_next_addr},
+	{"bytes_prev_addr", test_bytes_prev_addr},
+	{"bytes_first_item", test_bytes_first_item},
+	{"bytes_last_item", test_bytes_last_item},
+	{"bytes_next_item", test_bytes_next_item},
+	{"bytes_prev_item", test_bytes_prev_item},
 	{"bytes_item_head-unknown", test_bytes_item_head_unknown},
 	{"bytes_item_head-data", test_bytes_item_head_data},
 	{"bytes_item_head-code", test_bytes_item_head_code},
 	{"bytes_item_end", test_bytes_item_end},
+	{"bytes_first_not_tail", test_bytes_first_not_tail},
+	{"bytes_last_not_tail", test_bytes_last_not_tail},
+	{"bytes_next_not_tail", test_bytes_next_not_tail},
+	{"bytes_prev_not_tail", test_bytes_prev_not_tail},
+
+	{"bytes_create_code_item", test_create_code_item},
+	{"bytes_create_data_item_byte", test_create_data_item_byte},
+	{"bytes_create_data_item_word", test_create_data_item_word},
+	{"bytes_create_data_item_dword", test_create_data_item_dword},
+	{"bytes_create_data_item_qword", test_create_data_item_qword},
+
 	{NULL, NULL},
 };
 

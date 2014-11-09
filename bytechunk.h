@@ -32,6 +32,9 @@ void free_bytechunk(struct bytechunk *chunk);
 
 void dump_chunk(struct bytechunk *chunk);
 
+uint64_t chunk_first_addr(struct bytechunk *chunk);
+uint64_t chunk_last_addr(struct bytechunk *chunk);
+
 int chunk_contains_addr(struct bytechunk *chunk, uint64_t addr);
 int chunk_contains_range(struct bytechunk *chunk, uint64_t first, uint64_t last);
 
@@ -87,6 +90,9 @@ int chunk_put_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t dat
 
 
 /*  ITEMS  */
+
+int chunk_next_addr(struct bytechunk *chunk, uint64_t addr, uint64_t *addr_out);
+int chunk_prev_addr(struct bytechunk *chunk, uint64_t addr, uint64_t *addr_out);
 int chunk_first_item(struct bytechunk *chunk, uint64_t *head_out);
 int chunk_last_item(struct bytechunk *chunk, uint64_t *head_out);
 int chunk_next_item(struct bytechunk *chunk, uint64_t addr, uint64_t *next_out);
@@ -103,6 +109,5 @@ int chunk_create_data_item_byte(struct bytechunk *chunk, uint64_t addr);
 int chunk_create_data_item_word(struct bytechunk *chunk, uint64_t addr);
 int chunk_create_data_item_dword(struct bytechunk *chunk, uint64_t addr);
 int chunk_create_data_item_qword(struct bytechunk *chunk, uint64_t addr);
-		
 
 #endif

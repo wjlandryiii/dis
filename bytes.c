@@ -371,6 +371,17 @@ int bytes_set_byte_class(struct bytes *bytes, uint64_t addr, uint32_t class){
 	}
 }
 
+int bytes_set_range_class(struct bytes *bytes, uint64_t first, uint64_t last,  uint32_t class){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, first);
+	if(chunk){
+		return chunk_set_range_class(chunk, first, last, class);
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
 
 
 /**************************   Datatype   *************************************/
@@ -406,31 +417,234 @@ int set_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t datatype){
 
 /**********************   Items   ********************************************/
 
-int bytes_first_address(struct bytes *bytes, uint64_t *addr_out){
+int bytes_first_addr(struct bytes *bytes, uint64_t *addr_out){
+	struct bytechunk *chunk;
 
-	return 0;
+	chunk = bytes->b_chunks;
+	if(chunk){
+		if(addr_out){
+			*addr_out = chunk->bc_first;
+		}
+		return 0;
+	} else {
+		dis_errno = DER_NOTFOUND;
+		return -1;
+	}
 }
 
-int bytes_last_address(struct bytes *bytes, uint64_t *addr_out){
+int bytes_last_addr(struct bytes *bytes, uint64_t *addr_out){
+	struct bytechunk *chunk;
 
-	return 0;
+	chunk = bytes_last_chunk(bytes);
+	if(chunk){
+		if(addr_out){
+			*addr_out = chunk->bc_last;
+		}
+		return 0;
+	} else {
+		dis_errno = DER_NOTFOUND;
+		return -1;
+	}
 }
 
-int bytes_next_address(struct bytes *bytes, uint64_t *addr_out){
+int bytes_next_addr(struct bytes *bytes, uint64_t addr, uint64_t *addr_out){
+	struct bytechunk *chunk;
+	uint64_t next_addr;
+	register int r;
 
-	return 0;
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		r = chunk_next_addr(chunk, addr, &next_addr);
+		if(!r){
+			if(addr_out){
+				*addr_out = next_addr;
+			}
+			return 0;
+		} else if(r && dis_errno == DER_NOTFOUND){
+			chunk = bytes_next_chunk(chunk);
+			if(chunk){
+				if(addr_out){
+					*addr_out = chunk_first_addr(chunk);
+				}
+				return 0;
+			} else {
+				dis_errno = DER_NOTFOUND;
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
 }
 
-int bytes_prev_address(struct bytes *bytes, uint64_t *addr_out){
+int bytes_prev_addr(struct bytes *bytes, uint64_t addr, uint64_t *addr_out){
+	struct bytechunk *chunk;
+	uint64_t prev_addr;
+	register int r;
 
-	return 0;
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		r = chunk_prev_addr(chunk, addr, &prev_addr);
+		if(!r){
+			if(addr_out){
+				*addr_out = prev_addr;
+			}
+			return 0;
+		} else if(r && dis_errno == DER_NOTFOUND){
+			chunk = bytes_prev_chunk(chunk);
+			if(chunk){
+				if(addr_out){
+					*addr_out = chunk_last_addr(chunk);
+				}
+				return 0;
+			} else {
+				dis_errno = DER_NOTFOUND;
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
 }
 
 
-int bytes_first_item(struct bytes *bytes, uint64_t *first_out);
-int bytes_last_item(struct bytes *bytes, uint64_t *last_out);
-int bytes_next_item(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
-int bytes_prev_item(struct bytes *bytes, uint64_t addr, uint64_t *prev_out);
+int bytes_first_item(struct bytes *bytes, uint64_t *first_out){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = bytes->b_chunks;
+
+	while(chunk){
+		dis_errno = 0;
+		r = chunk_first_item(chunk, &addr);
+		if(!r){
+			if(first_out){
+				*first_out = addr;
+			}
+			return 0;
+		} else if(r && dis_errno != DER_NOTFOUND){
+			return r;
+		}
+		chunk = chunk->bc_next;
+	}
+	dis_errno = DER_NOTFOUND;
+	return -1;
+}
+
+
+int bytes_last_item(struct bytes *bytes, uint64_t *last_out){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = bytes_last_chunk(bytes);
+
+	while(chunk){
+		dis_errno = 0;
+		r = chunk_last_item(chunk, &addr);
+		if(!r){
+			if(last_out){
+				*last_out = addr;
+			}
+			return 0;
+		} else if(r && dis_errno != DER_NOTFOUND){
+			return r;
+		}
+		chunk = chunk->bc_prev;
+	}
+	dis_errno = DER_NOTFOUND;
+	return -1;
+}
+
+
+int bytes_next_item(struct bytes *bytes, uint64_t addr, uint64_t *next_out){
+	struct bytechunk *chunk;
+	uint64_t next;
+	register int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+
+	if(chunk){
+		dis_errno = 0;
+		r = chunk_next_item(chunk, addr, &next);
+		if(!r){
+			if(next_out){
+				*next_out = next;
+			}
+			return 0;
+		} else if(r && dis_errno == DER_NOTFOUND){
+			chunk = chunk->bc_next;
+			while(chunk){
+				dis_errno = 0;
+				r = chunk_first_item(chunk, &next);
+				if(!r){
+					if(next_out){
+						*next_out = next;
+					}
+					return 0;
+				} else if(r && dis_errno != DER_NOTFOUND){
+					return r;
+				}
+				chunk = chunk->bc_next;
+			}
+			dis_errno = DER_NOTFOUND;
+			return -1;
+		} else {
+			return r;
+		}
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
+
+int bytes_prev_item(struct bytes *bytes, uint64_t addr, uint64_t *prev_out){
+	struct bytechunk *chunk;
+	uint64_t prev;
+	register int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+
+	if(chunk){
+		dis_errno = 0;
+		r = chunk_prev_item(chunk, addr, &prev);
+		if(!r){
+			if(prev_out){
+				*prev_out = prev;
+			}
+			return 0;
+		} else if(r && dis_errno == DER_NOTFOUND){
+			chunk = chunk->bc_prev;
+			while(chunk){
+				dis_errno = 0;
+				r = chunk_last_item(chunk, &prev);
+				if(!r){
+					if(prev_out){
+						*prev_out = prev;
+					}
+					return 0;
+				} else if(r && dis_errno != DER_NOTFOUND){
+					return r;
+				}
+				chunk = chunk->bc_prev;
+			}
+			dis_errno = DER_NOTFOUND;
+			return -1;
+		} else {
+			return r;
+		}
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
 
 
 int
@@ -458,13 +672,190 @@ bytes_item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out){
 	}
 }
 
-int bytes_first_not_tail(struct bytes *bytes, uint64_t *first_out);
-int bytes_last_not_tail(struct bytes *bytes, uint64_t *last_out);
-int bytes_next_not_tail(struct bytes *bytes, uint64_t *next_out);
-int bytes_prev_not_tail(struct bytes *bytes, uint64_t *prev_out);
+int bytes_first_not_tail(struct bytes *bytes, uint64_t *first_out){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
 
-int bytes_create_code_item(struct bytes *bytes, uint64_t first, uint64_t last);
-int bytes_create_data_item_byte(struct bytes *bytes, uint64_t addr);
-int bytes_create_data_item_word(struct bytes *bytes, uint64_t addr);
-int bytes_create_data_item_dword(struct bytes *bytes, uint64_t addr);
-int bytes_create_data_item_qword(struct bytes *bytes, uint64_t addr);
+	chunk = bytes->b_chunks;
+
+	while(chunk){
+		r = chunk_first_not_tail(chunk, &addr);
+		if(!r){
+			if(first_out){
+				*first_out = addr;
+			}
+			return 0;
+		} else if(r && dis_errno != DER_NOTFOUND){
+			return r;
+		}
+		chunk = chunk->bc_next;
+	}
+	dis_errno = DER_NOTFOUND;
+	return -1;
+}
+
+int bytes_last_not_tail(struct bytes *bytes, uint64_t *last_out){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = bytes_last_chunk(bytes);
+
+	while(chunk){
+		r = chunk_last_not_tail(chunk, &addr);
+		if(!r){
+			if(last_out){
+				*last_out = addr;
+			}
+			return 0;
+		} else if(r && dis_errno != DER_NOTFOUND){
+			return r;
+		}
+		chunk = chunk->bc_prev;
+	}
+	dis_errno = DER_NOTFOUND;
+	return -1;
+}
+
+int bytes_next_not_tail(struct bytes *bytes, uint64_t addr, uint64_t *next_out){
+	struct bytechunk *chunk;
+	uint64_t next;
+	register int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+
+	if(chunk){
+		dis_errno = 0;
+		r = chunk_next_not_tail(chunk, addr, &next);
+		if(!r){
+			if(next_out){
+				*next_out = next;
+			}
+			return 0;
+		} else if(r && dis_errno == DER_NOTFOUND){
+			chunk = chunk->bc_next;
+			while(chunk){
+				dis_errno = 0;
+				r = chunk_first_not_tail(chunk, &next);
+				if(!r){
+					if(next_out){
+						*next_out = next;
+					}
+					return 0;
+				} else if(r && dis_errno != DER_NOTFOUND){
+					return r;
+				}
+				chunk = chunk->bc_next;
+			}
+			dis_errno = DER_NOTFOUND;
+			return -1;
+		} else {
+			return r;
+		}
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
+
+int bytes_prev_not_tail(struct bytes *bytes, uint64_t addr, uint64_t *prev_out){
+	struct bytechunk *chunk;
+	uint64_t prev;
+	register int r;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+
+	if(chunk){
+		dis_errno = 0;
+		r = chunk_prev_not_tail(chunk, addr, &prev);
+		if(!r){
+			if(prev_out){
+				*prev_out = prev;
+			}
+			return 0;
+		} else if(r && dis_errno == DER_NOTFOUND){
+			chunk = chunk->bc_prev;
+			while(chunk){
+				dis_errno = 0;
+				r = chunk_last_not_tail(chunk, &prev);
+				if(!r){
+					if(prev_out){
+						*prev_out = prev;
+					}
+					return 0;
+				} else if(r && dis_errno != DER_NOTFOUND){
+					return r;
+				}
+				chunk = chunk->bc_prev;
+			}
+			dis_errno = DER_NOTFOUND;
+			return -1;
+		} else {
+			return r;
+		}
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
+
+int bytes_create_code_item(struct bytes *bytes, uint64_t first, uint64_t last){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, first);
+	if(chunk){
+		return chunk_create_code_item(chunk, first, last);
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
+
+int bytes_create_data_item_byte(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_create_data_item_byte(chunk, addr);
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
+
+int bytes_create_data_item_word(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_create_data_item_word(chunk, addr);
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
+
+int bytes_create_data_item_dword(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_create_data_item_dword(chunk, addr);
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}
+
+int bytes_create_data_item_qword(struct bytes *bytes, uint64_t addr){
+	struct bytechunk *chunk;
+
+	chunk = find_chunk_containing_addr(bytes, addr);
+	if(chunk){
+		return chunk_create_data_item_qword(chunk, addr);
+	} else {
+		dis_errno = DER_INVADDR;
+		return -1;
+	}
+}

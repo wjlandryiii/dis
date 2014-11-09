@@ -996,6 +996,95 @@ static int test_chunk_put_byte_datatype(void){
 /****************************    Items    ************************************/
 
 
+static int test_chunk_next_addr(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	addr = chunk_first_addr(chunk);
+
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 11);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 12);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 13);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 15);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 16);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 17);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 18);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 19);
+	r = chunk_next_addr(chunk, addr, &addr);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_NOTFOUND);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_prev_addr(void){
+	struct bytechunk *chunk;
+	uint64_t addr;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	addr = chunk_last_addr(chunk);
+
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 18);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 17);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 16);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 15);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 14);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 13);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 12);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 11);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF_ERR(r);
+	FAIL_IF(addr != 10);
+	r = chunk_prev_addr(chunk, addr, &addr);
+	FAIL_IF(!r);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
 static int test_chunk_first_item(void){
 	struct bytechunk *chunk;
 	uint64_t addr;
@@ -1568,6 +1657,8 @@ static struct test tests[] = {
 	{"chunk_get_byte_datatype", test_chunk_get_byte_datatype},
 	{"chunk_put_byte_datatype", test_chunk_put_byte_datatype},
 	/* ITEMS */
+	{"test_chunk_next_addr", test_chunk_next_addr},
+	{"test_chunk_prev_addr", test_chunk_prev_addr},
 	{"chunk_first_item", test_chunk_first_item},
 	{"chunk_last_item", test_chunk_last_item},
 	{"chunk_next_item", test_chunk_next_item},

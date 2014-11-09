@@ -68,11 +68,20 @@ new_bytechunk(uint64_t first, uint64_t last){
 }
 
 
-
 void
 free_bytechunk(struct bytechunk *chunk){
 	free(chunk);
 }
+
+
+uint64_t chunk_first_addr(struct bytechunk *chunk){
+	return chunk->bc_first;
+}
+
+uint64_t chunk_last_addr(struct bytechunk *chunk){
+	return chunk->bc_last;
+}
+
 
 void dump_chunk(struct bytechunk *chunk){
 	int i;
@@ -564,6 +573,42 @@ chunk_put_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t datatyp
 
 
 /**************************    Items     *************************************/
+
+
+int chunk_next_addr(struct bytechunk *chunk, uint64_t addr, uint64_t *addr_out){
+	if(chunk_contains_addr(chunk, addr)){
+		if(addr < chunk->bc_last){
+			if(addr_out){
+				*addr_out = addr + 1;
+			}
+			return 0;
+		} else {
+			dis_errno = DER_NOTFOUND;
+			return -1;
+		}
+	} else {
+		dis_errno = DER_BOUNDS;
+		return -1;
+	}
+}
+
+int chunk_prev_addr(struct bytechunk *chunk, uint64_t addr, uint64_t *addr_out){
+	if(chunk_contains_addr(chunk, addr)){
+		if(chunk->bc_first < addr){
+			if(addr_out){
+				*addr_out = addr - 1;
+			}
+			return 0;
+		} else {
+			dis_errno = DER_NOTFOUND;
+			return -1;
+		}
+	} else {
+		dis_errno = DER_BOUNDS;
+		return -1;
+	}
+}
+
 
 int chunk_first_item(struct bytechunk *chunk, uint64_t *first_out){
 	int i;
