@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "workspace.h"
 #include "loader.h"
@@ -89,40 +90,37 @@ load_file_elf(struct workspace *ws, FILE *f){
 
 int
 pre_analysis_elf(struct workspace *ws){
-	return -1;
-/*
 	uint64_t base_addr = 0x08048000;
 	register int r;
 	r = 0;
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_byte(ws->ws_bytes, base_addr++);
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2; // e_type
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2; // e_machine
-	r |= set_bytes_datatype_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_version
-	r |= set_bytes_datatype_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_entry
-	r |= set_bytes_datatype_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_phoff
-	r |= set_bytes_datatype_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_shoff
-	r |= set_bytes_datatype_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_flags
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_ehsize
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_phentsize
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_phnum
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shentsize
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shnum
-	r |= set_bytes_datatype_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shstrndx
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2; // e_type
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2; // e_machine
+	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_version
+	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_entry
+	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_phoff
+	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_shoff
+	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_flags
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_ehsize
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_phentsize
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_phnum
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shentsize
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shnum
+	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shstrndx
 	return r;
-*/
 }
