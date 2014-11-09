@@ -14,11 +14,13 @@ struct bytes {
 	struct bytechunk *b_chunks;
 };
 
-struct bytes * new_bytes(void);
+struct bytes *new_bytes(void);
 void free_bytes(struct bytes *bytes);
 
-struct bytechunk * first_chunk(struct bytes *bytes);
-struct bytechunk * next_chunk(struct bytechunk *chunk);
+struct bytechunk *bytes_first_chunk(struct bytes *bytes);
+struct bytechunk *bytes_last_chunk(struct bytes *bytes);
+struct bytechunk *bytes_next_chunk(struct bytechunk *chunk);
+struct bytechunk *bytes_prev_chunk(struct bytechunk *chunk);
 
 int enable_bytes(struct bytes *bytes, uint64_t first, uint64_t last);
 /* TODO int disable_bytes(struct bytes *bytes, uint64_t first, uint64_t last); */
@@ -56,15 +58,27 @@ int set_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t datatype);
 
 /* ITEMS */
 
-int item_head(struct bytes *bytes, uint64_t addr, uint64_t *head_out);
-int item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out);
+int bytes_first_address(struct bytes *bytes, uint64_t *addr_out);
+int bytes_last_address(struct bytes *bytes, uint64_t *addr_out);
+int bytes_next_address(struct bytes *bytes, uint64_t *addr_out);
+int bytes_prev_address(struct bytes *bytes, uint64_t *addr_out);
 
-/* TODO
-int first_item(struct bytes *bytes, uint64_t *addr);
-int next_item(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
-int prev_item(struct bytes *bytes, uint64_t addr, uint64_t *prev_out);
-int next_not_tail(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
-*/
+int bytes_first_item(struct bytes *bytes, uint64_t *first_out);
+int bytes_last_item(struct bytes *bytes, uint64_t *last_out);
+int bytes_next_item(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
+int bytes_prev_item(struct bytes *bytes, uint64_t addr, uint64_t *prev_out);
+int bytes_item_head(struct bytes *bytes, uint64_t addr, uint64_t *head_out);
+int bytes_item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out);
+int bytes_first_not_tail(struct bytes *bytes, uint64_t *first_out);
+int bytes_last_not_tail(struct bytes *bytes, uint64_t *last_out);
+int bytes_next_not_tail(struct bytes *bytes, uint64_t *next_out);
+int bytes_prev_not_tail(struct bytes *bytes, uint64_t *prev_out);
+
+int bytes_create_code_item(struct bytes *bytes, uint64_t first, uint64_t last);
+int bytes_create_data_item_byte(struct bytes *bytes, uint64_t addr);
+int bytes_create_data_item_word(struct bytes *bytes, uint64_t addr);
+int bytes_create_data_item_dword(struct bytes *bytes, uint64_t addr);
+int bytes_create_data_item_qword(struct bytes *bytes, uint64_t addr);
 
 
 #endif

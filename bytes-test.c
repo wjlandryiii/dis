@@ -26,7 +26,7 @@ static int test_enable_bytes(void){
 	r = enable_bytes(bytes, 100, 200);
 	FAIL_IF(r != 0);
 
-	chunk = first_chunk(bytes);
+	chunk = bytes_first_chunk(bytes);
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 100);
 	FAIL_IF(chunk->bc_last != 200);
@@ -51,7 +51,7 @@ static int test_enable_bytes_forward(){
 		enable_bytes(bytes, first, last);
 	}
 	
-	c = first_chunk(bytes);
+	c = bytes_first_chunk(bytes);
 	for(i = 0; i < 5; i++){
 		first = i*5;
 		last = first + 2;
@@ -59,7 +59,7 @@ static int test_enable_bytes_forward(){
 		FAIL_IF(c == NULL);
 		FAIL_IF(c->bc_first != first);
 		FAIL_IF(c->bc_last != last);
-		c = next_chunk(c);
+		c = bytes_next_chunk(c);
 	}
 	FAIL_IF(c != NULL);
 	free_bytes(bytes);
@@ -81,7 +81,7 @@ static int test_enable_bytes_reverse(){
 		enable_bytes(bytes, first, last);
 	}
 
-	c = first_chunk(bytes);
+	c = bytes_first_chunk(bytes);
 	for(i = 0; i < 5; i++){
 		first = i*5;
 		last = first+2;
@@ -89,7 +89,7 @@ static int test_enable_bytes_reverse(){
 		FAIL_IF(c == NULL);
 		FAIL_IF(c->bc_first != first);
 		FAIL_IF(c->bc_last != last);
-		c = next_chunk(c);
+		c = bytes_next_chunk(c);
 	}
 	FAIL_IF(c != NULL);
 	free_bytes(bytes);
@@ -111,7 +111,7 @@ static int test_enable_bytes_middle(void){
 		enable_bytes(bytes, first, last);
 	}
 	
-	c = first_chunk(bytes);
+	c = bytes_first_chunk(bytes);
 	for(i = 0; i < 10; i++){
 		first = i*5;
 		last = first+2;
@@ -119,7 +119,7 @@ static int test_enable_bytes_middle(void){
 		FAIL_IF(c == NULL);
 		FAIL_IF(c->bc_first != first);
 		FAIL_IF(c->bc_last != last);
-		c = next_chunk(c);
+		c = bytes_next_chunk(c);
 	}
 	FAIL_IF(c != NULL);
 	free_bytes(bytes);
@@ -142,11 +142,11 @@ static int test_enable_bytes_expand_up(void){
 		enable_bytes(bytes, first, last);
 	}
 
-	chunk = first_chunk(bytes);
+	chunk = bytes_first_chunk(bytes);
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 0);
 	FAIL_IF(chunk->bc_last != 49);
-	chunk = next_chunk(chunk);
+	chunk = bytes_next_chunk(chunk);
 	FAIL_IF(chunk != NULL);
 	free_bytes(bytes);
 	return 0;
@@ -167,11 +167,11 @@ static int test_enable_bytes_expand_down(void){
 		enable_bytes(bytes, first, last);
 	}
 
-	chunk = first_chunk(bytes);
+	chunk = bytes_first_chunk(bytes);
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 0);
 	FAIL_IF(chunk->bc_last != 49);
-	chunk = next_chunk(chunk);
+	chunk = bytes_next_chunk(chunk);
 	FAIL_IF(chunk != NULL);
 	free_bytes(bytes);
 	return 0;
@@ -192,11 +192,11 @@ static int test_enable_bytes_merge(void){
 		enable_bytes(bytes, first, last);
 	}
 	
-	chunk = first_chunk(bytes);
+	chunk = bytes_first_chunk(bytes);
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 0);
 	FAIL_IF(chunk->bc_last != 49);
-	chunk = next_chunk(chunk);
+	chunk = bytes_next_chunk(chunk);
 	FAIL_IF(chunk != NULL);
 	free_bytes(bytes);
 	return 0;
@@ -217,7 +217,7 @@ static int test_get_byte_fields(void){
 	r |= enable_bytes(bytes, 40, 49);
 	FAIL_IF(r != 0);
 
-	chunk = first_chunk(bytes);
+	chunk = bytes_first_chunk(bytes);
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 0);
 	FAIL_IF(chunk->bc_last != 9);
@@ -225,7 +225,7 @@ static int test_get_byte_fields(void){
 	chunk->bc_bytes[4] = 0x22222222;
 	chunk->bc_bytes[9] = 0x33333333;
 
-	chunk = next_chunk(chunk);
+	chunk = bytes_next_chunk(chunk);
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 20);
 	FAIL_IF(chunk->bc_last != 29);
@@ -233,7 +233,7 @@ static int test_get_byte_fields(void){
 	chunk->bc_bytes[4] = 0x55555555;
 	chunk->bc_bytes[9] = 0x66666666;
 
-	chunk = next_chunk(chunk);
+	chunk = bytes_next_chunk(chunk);
 	FAIL_IF(chunk == NULL);
 	FAIL_IF(chunk->bc_first != 40);
 	FAIL_IF(chunk->bc_last != 49);
@@ -241,7 +241,7 @@ static int test_get_byte_fields(void){
 	chunk->bc_bytes[4] = 0x88888888;
 	chunk->bc_bytes[9] = 0x99999999;
 
-	chunk = next_chunk(chunk);
+	chunk = bytes_next_chunk(chunk);
 	FAIL_IF(chunk != NULL);
 
 	r = get_byte_fields(bytes, 0, &fields);
@@ -791,7 +791,7 @@ static int test_set_bytes_datatype(void){
 
 
 
-static int test_item_head_unknown(void){
+static int test_bytes_item_head_unknown(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -803,18 +803,18 @@ static int test_item_head_unknown(void){
 	FAIL_IF_ERR(r);
 
 	addr = 0;
-	r = item_head(bytes, 10, &addr);
+	r = bytes_item_head(bytes, 10, &addr);
 	FAIL_IF(r == 0);
 
 	addr = 0;
-	r = item_head(bytes, 14, &addr);
+	r = bytes_item_head(bytes, 14, &addr);
 	FAIL_IF(r == 0);
 
 	free_bytes(bytes);
 	return 0;
 }
 
-static int test_item_head_data(void){
+static int test_bytes_item_head_data(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -832,12 +832,12 @@ static int test_item_head_data(void){
 	set_byte_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
 
 	addr = 0;
-	r = item_head(bytes, 10, &addr);
+	r = bytes_item_head(bytes, 10, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 10);
 
 	addr = 0;
-	r = item_head(bytes, 14, &addr);
+	r = bytes_item_head(bytes, 14, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 10);
 
@@ -845,7 +845,7 @@ static int test_item_head_data(void){
 	return 0;
 }
 
-static int test_item_head_code(void){
+static int test_bytes_item_head_code(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -863,12 +863,12 @@ static int test_item_head_code(void){
 	set_byte_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
 
 	addr = 0;
-	r = item_head(bytes, 10, &addr);
+	r = bytes_item_head(bytes, 10, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 10);
 
 	addr = 0;
-	r = item_head(bytes, 14, &addr);
+	r = bytes_item_head(bytes, 14, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 10);
 
@@ -876,7 +876,7 @@ static int test_item_head_code(void){
 	return 0;
 }
 
-static int test_item_end(void){
+static int test_bytes_item_end(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -894,12 +894,12 @@ static int test_item_end(void){
 	set_byte_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
 
 	addr = 0;
-	r = item_end(bytes, 10, &addr);
+	r = bytes_item_end(bytes, 10, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 14);
 
 	addr = 0;
-	r = item_end(bytes, 14, &addr);
+	r = bytes_item_end(bytes, 14, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 14);
 
@@ -910,12 +910,12 @@ static int test_item_end(void){
 	set_byte_fields(bytes, 19, set_class_field(0, CLASS_TAIL));
 	
 	addr = 0;
-	r = item_end(bytes, 10, &addr);
+	r = bytes_item_end(bytes, 10, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 19);
 	
 	addr = 0;
-	r = item_end(bytes, 19, &addr);
+	r = bytes_item_end(bytes, 19, &addr);
 	FAIL_IF_ERR(r);
 	FAIL_IF(addr != 19);
 
@@ -953,10 +953,10 @@ static struct test tests[] = {
 	{"get_bytes_datatype",test_get_bytes_datatype},
 	{"set_bytes_datatype", test_set_bytes_datatype},
 	/* Items */
-	{"item_head-unknown", test_item_head_unknown},
-	{"item_head-data", test_item_head_data},
-	{"item_head-code", test_item_head_code},
-	{"item_end", test_item_end},
+	{"bytes_item_head-unknown", test_bytes_item_head_unknown},
+	{"bytes_item_head-data", test_bytes_item_head_data},
+	{"bytes_item_head-code", test_bytes_item_head_code},
+	{"bytes_item_end", test_bytes_item_end},
 	{NULL, NULL},
 };
 

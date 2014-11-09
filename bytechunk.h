@@ -20,6 +20,7 @@ is_range_adjacent(uint64_t A, uint64_t B, uint64_t C, uint64_t D);
 
 struct bytechunk {
 	struct bytechunk *bc_next;
+	struct bytechunk *bc_prev;
 	uint64_t bc_first;
 	uint64_t bc_last;
 	uint32_t *bc_bytes;
