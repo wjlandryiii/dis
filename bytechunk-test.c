@@ -244,6 +244,54 @@ int test_expand_chunk_down(void){
 
 /*******************************    Value Field    ***************************/
 
+static int test_chunk_get_byte(void){
+	struct bytechunk *chunk;
+	uint32_t fields;
+	uint8_t byte;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_get_byte(chunk, 10, &byte);
+	FAIL_IF(!r);
+	FAIL_IF(dis_errno != DER_INVVALUE);
+
+	fields = 0;
+	fields = set_byte_value_field(fields, 0x90);
+	fields = set_value_field(fields, VALUE_VALID);
+	chunk->bc_bytes[0] = fields;
+
+	byte = 0;
+	r = chunk_get_byte(chunk, 10, &byte);
+	FAIL_IF_ERR(r);
+	FAIL_IF(byte != 0x90);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_set_byte(void){
+	struct bytechunk *chunk;
+	uint8_t byte;
+	register int r;
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_byte(chunk, 10, 0x90);
+	FAIL_IF_ERR(r);
+
+	byte = 0;
+	r = chunk_get_byte(chunk, 10, &byte);
+	FAIL_IF_ERR(r);
+	FAIL_IF(byte != 0x90);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
 static int
 test_copy_bytes_from_chunk(void){
 	struct bytechunk *chunk;
@@ -363,6 +411,151 @@ test_chunk_set_bytes(void){
 		r |= dst[i] ^ 0x90;
 	}
 	FAIL_IF(r != 0);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+static int test_chunk_get_word(void){
+	struct bytechunk *chunk;
+	uint16_t word;
+	register int r;
+
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = 0;
+	r |= chunk_set_byte(chunk, 10, 0x23);
+	r |= chunk_set_byte(chunk, 11, 0x01);
+	FAIL_IF_ERR(r);
+
+	word = 0;
+	r = chunk_get_word(chunk, 10, &word);
+	FAIL_IF_ERR(r);
+	FAIL_IF(word != 0x0123);
+	
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_get_dword(void){
+	struct bytechunk *chunk;
+	uint32_t dword;
+	register int r;
+
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = 0;
+	r |= chunk_set_byte(chunk, 10, 0x67);
+	r |= chunk_set_byte(chunk, 11, 0x45);
+	r |= chunk_set_byte(chunk, 12, 0x23);
+	r |= chunk_set_byte(chunk, 13, 0x01);
+	FAIL_IF_ERR(r);
+
+	dword = 0;
+	r = chunk_get_dword(chunk, 10, &dword);
+	FAIL_IF_ERR(r);
+	FAIL_IF(dword != 0x01234567);
+	
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_get_qword(void){
+	struct bytechunk *chunk;
+	uint64_t qword;
+	register int r;
+
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = 0;
+	r |= chunk_set_byte(chunk, 10, 0xEF);
+	r |= chunk_set_byte(chunk, 11, 0xCD);
+	r |= chunk_set_byte(chunk, 12, 0xAB);
+	r |= chunk_set_byte(chunk, 13, 0x89);
+	r |= chunk_set_byte(chunk, 14, 0x67);
+	r |= chunk_set_byte(chunk, 15, 0x45);
+	r |= chunk_set_byte(chunk, 16, 0x23);
+	r |= chunk_set_byte(chunk, 17, 0x01);
+	FAIL_IF_ERR(r);
+
+	qword = 0;
+	r = chunk_get_qword(chunk, 10, &qword);
+	FAIL_IF_ERR(r);
+	FAIL_IF(qword != 0x0123456789ABCDEF);
+	
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_set_word(void){
+	struct bytechunk *chunk;
+	uint16_t word;
+	register int r;
+
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_word(chunk, 10, 0x0123);
+	FAIL_IF_ERR(r);
+
+	word = 0;
+	r = chunk_get_word(chunk, 10, &word);
+	FAIL_IF_ERR(r);
+	FAIL_IF(word != 0x0123);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_set_dword(void){
+	struct bytechunk *chunk;
+	uint32_t dword;
+	register int r;
+
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_dword(chunk, 10, 0x01234567);
+	FAIL_IF_ERR(r);
+
+	dword = 0;
+	r = chunk_get_dword(chunk, 10, &dword);
+	FAIL_IF_ERR(r);
+	FAIL_IF(dword != 0x01234567);
+
+	free_bytechunk(chunk);
+	return 0;
+}
+
+
+static int test_chunk_set_qword(void){
+	struct bytechunk *chunk;
+	uint64_t qword;
+	register int r;
+
+
+	chunk = new_bytechunk(10, 19);
+	FAIL_IF(chunk == NULL);
+
+	r = chunk_set_qword(chunk, 10, 0x0123456789ABCDEF);
+	FAIL_IF_ERR(r);
+
+	qword = 0;
+	r = chunk_get_qword(chunk, 10, &qword);
+	FAIL_IF_ERR(r);
+	FAIL_IF(qword != 0x0123456789ABCDEF);
 
 	free_bytechunk(chunk);
 	return 0;
@@ -1346,10 +1539,18 @@ static struct test tests[] = {
 	{"expand_chunk_up", test_expand_chunk_up},
 	{"expand_chunk_down", test_expand_chunk_down},
 	/* VALUE FIELD */
+	{"chunk_get_byte", test_chunk_get_byte},
+	{"chunk_set_byte", test_chunk_set_byte},
 	{"copy_bytes_from_chunk", test_copy_bytes_from_chunk},
 	{"copy_bytes_from_chunk-invalid_value", test_copy_bytes_from_chunk_invalid_value},
 	{"copy_bytes_to_chunk", test_copy_bytes_to_chunk},
 	{"chunk_set_bytes", test_chunk_set_bytes},
+	{"chunk_get_word", test_chunk_get_word},
+	{"chunk_get_dword", test_chunk_get_dword},
+	{"chunk_get_qword", test_chunk_get_qword},
+	{"chunk_set_word", test_chunk_set_word},
+	{"chunk_set_dword", test_chunk_set_dword},
+	{"chunk_set_qword", test_chunk_set_qword},
 	/* CLASS FIELD */
 	{"chunk_get_byte_class", test_chunk_get_byte_class},
 	{"chunk_set_byte_class", test_chunk_set_byte_class},

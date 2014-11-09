@@ -6,8 +6,7 @@
 #include "bytechunk.h"
 #include "testrunner.h"
 
-static int
-test_newfree(void){
+static int test_newfree(void){
 	struct bytes *bytes;
 
 	bytes = new_bytes();
@@ -16,8 +15,7 @@ test_newfree(void){
 	return 0;
 }
 
-int
-test_enable_bytes(void){
+static int test_enable_bytes(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	int r;
@@ -38,8 +36,7 @@ test_enable_bytes(void){
 	return 0;
 }
 
-int
-test_enable_bytes_forward(){
+static int test_enable_bytes_forward(){
 	struct bytes *bytes;
 	struct bytechunk *c;
 	int i;
@@ -69,7 +66,7 @@ test_enable_bytes_forward(){
 	return 0;
 }
 
-int test_enable_bytes_reverse(){
+static int test_enable_bytes_reverse(){
 	struct bytes *bytes;
 	struct bytechunk *c;
 	int i;
@@ -99,8 +96,7 @@ int test_enable_bytes_reverse(){
 	return 0;
 }
 
-static int
-test_enable_bytes_middle(void){
+static int test_enable_bytes_middle(void){
 	struct bytes *bytes;
 	struct bytechunk *c;
 	int i;
@@ -131,8 +127,7 @@ test_enable_bytes_middle(void){
 }
 
 
-static int
-test_enable_bytes_expand_up(void){
+static int test_enable_bytes_expand_up(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint64_t first;
@@ -157,8 +152,7 @@ test_enable_bytes_expand_up(void){
 	return 0;
 }
 
-static int
-test_enable_bytes_expand_down(void){
+static int test_enable_bytes_expand_down(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint64_t first;
@@ -183,8 +177,7 @@ test_enable_bytes_expand_down(void){
 	return 0;
 }
 
-static int
-test_enable_bytes_merge(void){
+static int test_enable_bytes_merge(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint64_t first;
@@ -209,8 +202,7 @@ test_enable_bytes_merge(void){
 	return 0;
 }
 
-static int
-test_get_byte_fields(void){
+static int test_get_byte_fields(void){
 	struct bytes *bytes;
 	struct bytechunk *chunk;
 	uint32_t fields;
@@ -287,8 +279,7 @@ test_get_byte_fields(void){
 }
 
 
-static int
-test_set_byte_fields(void){
+static int test_set_byte_fields(void){
 	struct bytes *bytes;
 	uint32_t fields;
 	uint32_t ar[9][2] = {
@@ -329,8 +320,12 @@ test_set_byte_fields(void){
 	return 0;
 }
 
-static int
-test_copy_from_bytes(void){
+
+
+/****************************   Value   **************************************/
+
+
+static int test_copy_from_bytes(void){
 	struct bytes *bytes;
 	uint8_t src[10] = {
 		0x10, 0x11, 0x12, 0x13, 0x14,
@@ -360,8 +355,7 @@ test_copy_from_bytes(void){
 }
 
 
-static int
-test_bytes_get_byte(void){
+static int test_bytes_get_byte(void){
 	struct bytes *bytes;
 	uint8_t byte;
 	int r;
@@ -386,8 +380,7 @@ test_bytes_get_byte(void){
 }
 
 
-static int
-test_bytes_get_word(void){
+static int test_bytes_get_word(void){
 	struct bytes *bytes;
 	uint16_t word;
 	int r;
@@ -412,8 +405,7 @@ test_bytes_get_word(void){
 	return 0;
 }
 
-static int
-test_bytes_get_dword(void){
+static int test_bytes_get_dword(void){
 	struct bytes *bytes;
 	uint32_t dword;
 	int r;
@@ -440,8 +432,7 @@ test_bytes_get_dword(void){
 	return 0;
 }
 
-static int
-test_bytes_get_qword(void){
+static int test_bytes_get_qword(void){
 	struct bytes *bytes;
 	uint64_t qword;
 	int r;
@@ -472,8 +463,32 @@ test_bytes_get_qword(void){
 	return 0;
 }
 
-static int
-test_set_bytes(void){
+
+static int test_copy_to_bytes(void){
+	struct bytes *bytes;
+	uint8_t src[10];
+	uint8_t dst[10];
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF(r != 0);
+	
+	memcpy(src, "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19", 10);
+	r = copy_to_bytes(bytes, 10, src, sizeof(src));
+	FAIL_IF_ERR(r);
+
+	r = copy_from_bytes(bytes, 10, dst, sizeof(dst));
+	FAIL_IF_ERR(r);
+	FAIL_IF(memcmp(dst, src, sizeof(src)) != 0);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_set_bytes(void){
 	struct bytes *bytes;
 	uint8_t dst[10];
 	int i;
@@ -499,8 +514,7 @@ test_set_bytes(void){
 	return 0;
 }
 
-static int
-test_bytes_put_byte(void){
+static int test_bytes_put_byte(void){
 	struct bytes *bytes;
 	uint8_t byte;
 	register int r;
@@ -523,8 +537,7 @@ test_bytes_put_byte(void){
 	return 0;
 }
 
-static int
-test_bytes_put_word(void){
+static int test_bytes_put_word(void){
 	struct bytes *bytes;
 	uint16_t word;
 	register int r;
@@ -547,8 +560,7 @@ test_bytes_put_word(void){
 	return 0;
 }
 
-static int
-test_bytes_put_dword(void){
+static int test_bytes_put_dword(void){
 	struct bytes *bytes;
 	uint32_t dword;
 	register int r;
@@ -571,8 +583,7 @@ test_bytes_put_dword(void){
 	return 0;
 }
 
-static int
-test_bytes_put_qword(void){
+static int test_bytes_put_qword(void){
 	struct bytes *bytes;
 	uint64_t qword;
 	register int r;
@@ -596,8 +607,12 @@ test_bytes_put_qword(void){
 }
 
 
-static int
-test_bytes_get_byte_class(void){
+
+/*****************************   Class   *************************************/
+
+
+
+static int test_bytes_get_byte_class(void){
 	struct bytes *bytes;
 	register int r;
 	uint32_t class;
@@ -640,8 +655,147 @@ test_bytes_get_byte_class(void){
 	return 0;
 }
 
-static int
-test_item_head_unknown(void){
+
+static int test_bytes_set_byte_class(void){
+	struct bytes *bytes;
+	uint32_t class;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	r = bytes_set_byte_class(bytes, 10, CLASS_CODE);
+	FAIL_IF_ERR(r);
+	r = bytes_get_byte_class(bytes, 10, &class);
+	FAIL_IF_ERR(r);
+	FAIL_IF(class != CLASS_CODE);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+/*****************************   Datatype   **********************************/
+
+
+static int test_get_bytes_datatype(void){
+	struct bytes *bytes;
+	uint32_t datatype;
+	uint32_t fields;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	/* BYTE */
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_BYTE);
+	r = set_byte_fields(bytes, 10, fields);
+	FAIL_IF_ERR(r);
+
+	datatype = 0;
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_BYTE);
+
+	/* WORD */
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_WORD);
+	r = set_byte_fields(bytes, 10, fields);
+	FAIL_IF(r != 0);
+	
+	datatype = 0;
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_WORD);
+
+	/* DWORD */
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_DWORD);
+	r = set_byte_fields(bytes, 10, fields);
+	FAIL_IF(r != 0);
+	
+	datatype = 0;
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_DWORD); 
+	
+	/* QWORD */
+	fields = 0;
+	fields = set_class_field(fields, CLASS_DATA);
+	fields = set_datatype_field(fields, DATATYPE_QWORD);
+	r = set_byte_fields(bytes, 10, fields);
+	FAIL_IF(r != 0);
+	
+	datatype = 0;
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_QWORD); 
+
+	free_bytes(bytes);
+	return 0;
+}
+
+static int test_set_bytes_datatype(void){
+	struct bytes *bytes;
+	uint32_t datatype;
+	register int r;
+
+	bytes = new_bytes();
+	FAIL_IF(bytes == NULL);
+	r = enable_bytes(bytes, 10, 19);
+	FAIL_IF_ERR(r);
+
+	/* BYTE */
+	r = set_class_unknown(bytes, 10, 19);
+	r = set_bytes_datatype(bytes, 10, DATATYPE_BYTE);
+	FAIL_IF_ERR(r);
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_BYTE);
+
+	/* WORD */
+	r = set_class_unknown(bytes, 10, 19);
+	r = set_bytes_datatype(bytes, 10, DATATYPE_WORD);
+	FAIL_IF_ERR(r);
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_WORD);
+
+	/* DWORD */
+	r = set_class_unknown(bytes, 10, 19);
+	r = set_bytes_datatype(bytes, 10, DATATYPE_DWORD);
+	FAIL_IF_ERR(r);
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_DWORD);
+	
+	/* QWORD */
+	r = set_class_unknown(bytes, 10, 19);
+	r = set_bytes_datatype(bytes, 10, DATATYPE_QWORD);
+	FAIL_IF_ERR(r);
+	r = get_bytes_datatype(bytes, 10, &datatype);
+	FAIL_IF_ERR(r);
+	FAIL_IF(datatype != DATATYPE_QWORD);
+
+	free_bytes(bytes);
+	return 0;
+}
+
+
+
+/**********************************   Items   ********************************/
+
+
+
+static int test_item_head_unknown(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -664,8 +818,7 @@ test_item_head_unknown(void){
 	return 0;
 }
 
-static int
-test_item_head_data(void){
+static int test_item_head_data(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -696,8 +849,7 @@ test_item_head_data(void){
 	return 0;
 }
 
-static int
-test_item_head_code(void){
+static int test_item_head_code(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -728,8 +880,7 @@ test_item_head_code(void){
 	return 0;
 }
 
-static int
-test_item_end(void){
+static int test_item_end(void){
 	struct bytes *bytes;
 	uint64_t addr;
 	register int r;
@@ -776,157 +927,6 @@ test_item_end(void){
 	return 0;
 }
 
-/*
-static int
-test_set_class_code(void){
-	struct bytes *bytes;
-	register int r;
-
-	bytes = new_bytes();
-	FAIL_IF(bytes == NULL);
-	r = enable_bytes(bytes, 10, 19);
-	FAIL_IF_ERR(r);
-
-	r = set_class_code(bytes, 10, 15);
-
-	return -1;
-
-
-
-	free_bytes(bytes);
-	return 0;
-}
-*/
-
-static int
-test_get_bytes_datatype(void){
-	struct bytes *bytes;
-	uint32_t datatype;
-	uint32_t fields;
-	register int r;
-
-	bytes = new_bytes();
-	FAIL_IF(bytes == NULL);
-
-	r = enable_bytes(bytes, 10, 19);
-	FAIL_IF_ERR(r);
-
-	/* NOT DATA */
-	datatype = 0;
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF(r == 0);
-
-	/* BYTE */
-	fields = 0;
-	fields = set_class_field(fields, CLASS_DATA);
-	fields = set_datatype_field(fields, DATATYPE_BYTE);
-	r = set_byte_fields(bytes, 10, fields);
-	FAIL_IF_ERR(r);
-
-	datatype = 0;
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_BYTE);
-
-	/* WORD */
-	fields = 0;
-	fields = set_class_field(fields, CLASS_DATA);
-	fields = set_datatype_field(fields, DATATYPE_WORD);
-	r = set_byte_fields(bytes, 10, fields);
-	r |= set_byte_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
-	FAIL_IF(r != 0);
-	
-	datatype = 0;
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_WORD);
-
-	/* DWORD */
-	fields = 0;
-	fields = set_class_field(fields, CLASS_DATA);
-	fields = set_datatype_field(fields, DATATYPE_DWORD);
-	r = set_byte_fields(bytes, 10, fields);
-	r |= set_byte_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
-	FAIL_IF(r != 0);
-	
-	datatype = 0;
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_DWORD); 
-	
-	/* QWORD */
-	fields = 0;
-	fields = set_class_field(fields, CLASS_DATA);
-	fields = set_datatype_field(fields, DATATYPE_QWORD);
-	r = set_byte_fields(bytes, 10, fields);
-	r |= set_byte_fields(bytes, 11, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 12, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 13, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 14, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 15, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 16, set_class_field(0, CLASS_TAIL));
-	r |= set_byte_fields(bytes, 17, set_class_field(0, CLASS_TAIL));
-	FAIL_IF(r != 0);
-	
-	datatype = 0;
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_QWORD); 
-
-	free_bytes(bytes);
-	return 0;
-}
-
-static int
-test_set_bytes_datatype(void){
-	struct bytes *bytes;
-	uint32_t datatype;
-	register int r;
-
-	bytes = new_bytes();
-	FAIL_IF(bytes == NULL);
-	r = enable_bytes(bytes, 10, 19);
-	FAIL_IF_ERR(r);
-
-	/* BYTE */
-	r = set_class_unknown(bytes, 10, 19);
-	r = set_bytes_datatype_byte(bytes, 10);
-	FAIL_IF_ERR(r);
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_BYTE);
-
-	/* WORD */
-	r = set_class_unknown(bytes, 10, 19);
-	r = set_bytes_datatype_word(bytes, 10);
-	FAIL_IF_ERR(r);
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_WORD);
-
-	/* DWORD */
-	r = set_class_unknown(bytes, 10, 19);
-	r = set_bytes_datatype_dword(bytes, 10);
-	FAIL_IF_ERR(r);
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_DWORD);
-	
-	/* QWORD */
-	r = set_class_unknown(bytes, 10, 19);
-	r = set_bytes_datatype_qword(bytes, 10);
-	FAIL_IF_ERR(r);
-	r = get_bytes_datatype(bytes, 10, &datatype);
-	FAIL_IF_ERR(r);
-	FAIL_IF(datatype != DATATYPE_QWORD);
-
-	free_bytes(bytes);
-	return 0;
-}
-
-
 static struct test tests[] = {
 	{"newfree", test_newfree},
 	{"enable_bytes", test_enable_bytes},
@@ -938,24 +938,29 @@ static struct test tests[] = {
 	{"enable_bytes-merge", test_enable_bytes_merge},
 	{"get_byte_fields", test_get_byte_fields},
 	{"set_byte_fields", test_set_byte_fields},
+	/* Value */
 	{"copy_from_bytes", test_copy_from_bytes},
 	{"bytes_get_byte", test_bytes_get_byte},
 	{"bytes_get_word", test_bytes_get_word},
 	{"bytes_get_dword", test_bytes_get_dword},
 	{"bytes_get_qword", test_bytes_get_qword},
+	{"copy_to_bytes", test_copy_to_bytes},
 	{"set_bytes", test_set_bytes},
 	{"bytes_put_byte", test_bytes_put_byte},
 	{"bytes_put_word", test_bytes_put_word},
 	{"bytes_put_dword", test_bytes_put_dword},
 	{"bytes_put_qword", test_bytes_put_qword},
+	/* Class */
 	{"bytes_get_byte_class", test_bytes_get_byte_class},
+	{"bytes_set_byte_class", test_bytes_set_byte_class},
+	/* Datatype */
+	{"get_bytes_datatype",test_get_bytes_datatype},
+	{"set_bytes_datatype", test_set_bytes_datatype},
+	/* Items */
 	{"item_head-unknown", test_item_head_unknown},
 	{"item_head-data", test_item_head_data},
 	{"item_head-code", test_item_head_code},
 	{"item_end", test_item_end},
-	/* {"set_class_code", test_set_class_code}, */
-	{"get_bytes_datatype",test_get_bytes_datatype},
-	{"set_bytes_datatype", test_set_bytes_datatype},
 	{NULL, NULL},
 };
 

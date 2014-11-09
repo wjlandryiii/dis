@@ -90,7 +90,7 @@ void dump_chunk(struct bytechunk *chunk){
 	printf("\n");
 }
 
-static int
+int
 chunk_contains_addr(struct bytechunk *chunk, uint64_t addr){
 	if(addr < chunk->bc_first){
 		return 0;
@@ -101,7 +101,7 @@ chunk_contains_addr(struct bytechunk *chunk, uint64_t addr){
 	}
 }
 
-static int
+int
 chunk_contains_range(struct bytechunk *chunk, uint64_t first, uint64_t last){
 	if(chunk->bc_first <= first && last <= chunk->bc_last){
 		return 1;
@@ -240,6 +240,45 @@ fail:
 
 /****************************    Value Field     *****************************/
 
+int chunk_get_byte(struct bytechunk *chunk, uint64_t addr, uint8_t *byte_out){
+	uint32_t fields;
+	int i;
+
+	if(chunk_contains_addr(chunk, addr)){
+		i = chunk_addr_to_index(chunk, addr);
+		fields = chunk->bc_bytes[i];
+		if(is_value_valid(fields)){
+			if(byte_out){
+				*byte_out = get_byte_value_field(fields);
+			}
+			return 0;
+		} else {
+			dis_errno = DER_INVVALUE;
+			return -1;
+		}
+	} else {
+		dis_errno = DER_BOUNDS;
+		return -1;
+	}
+}
+
+int chunk_set_byte(struct bytechunk *chunk, uint64_t addr, uint8_t byte){
+	uint32_t fields;
+	int i;
+
+	if(chunk_contains_addr(chunk, addr)){
+		i = chunk_addr_to_index(chunk, addr);
+		fields = chunk->bc_bytes[i];
+		fields = set_byte_value_field(fields, byte);
+		fields = set_value_field(fields, VALUE_VALID);
+		chunk->bc_bytes[i] = fields;
+		return 0;
+	} else {
+		dis_errno = DER_BOUNDS;
+		return -1;
+	}
+}
+
 
 int
 copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr,
@@ -313,6 +352,61 @@ chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t las
 		dis_errno = DER_BOUNDS;
 		return -1;
 	}
+}
+
+int chunk_get_word(struct bytechunk *chunk, uint64_t addr, uint16_t *word_out){
+	uint16_t word;
+	register int r;
+
+	r = copy_bytes_from_chunk(chunk, addr, (void *)&word, sizeof(word));
+	if(!r){
+		if(word_out){
+			*word_out = word;
+		}
+		return 0;
+	} else {
+		return r;
+	}
+}
+int chunk_get_dword(struct bytechunk *chunk, uint64_t addr, uint32_t *dword_out){
+	uint32_t dword;
+	register int r;
+
+	r = copy_bytes_from_chunk(chunk, addr, (void *)&dword, sizeof(dword));
+	if(!r){
+		if(dword_out){
+			*dword_out = dword;
+		}
+		return 0;
+	} else {
+		return r;
+	}
+}
+int chunk_get_qword(struct bytechunk *chunk, uint64_t addr, uint64_t *qword_out){
+	uint64_t qword;
+	register int r;
+
+	r = copy_bytes_from_chunk(chunk, addr, (void *)&qword, sizeof(qword));
+	if(!r){
+		if(qword_out){
+			*qword_out = qword;
+		}
+		return 0;
+	} else {
+		return r;
+	}
+}
+
+int chunk_set_word(struct bytechunk *chunk, uint64_t addr, uint16_t word){
+	return copy_bytes_to_chunk(chunk, addr, (void *)&word, sizeof(word));
+}
+
+int chunk_set_dword(struct bytechunk *chunk, uint64_t addr, uint32_t dword){
+	return copy_bytes_to_chunk(chunk, addr, (void *)&dword, sizeof(dword));
+}
+
+int chunk_set_qword(struct bytechunk *chunk, uint64_t addr, uint64_t qword){
+	return copy_bytes_to_chunk(chunk, addr, (void *)&qword, sizeof(qword));
 }
 
 

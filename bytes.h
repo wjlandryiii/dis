@@ -44,13 +44,26 @@ int bytes_put_qword(struct bytes *bytes, uint64_t addr, uint64_t value);
 
 /* CLASS */
 int bytes_get_byte_class(struct bytes *bytes, uint64_t addr, uint32_t *class_out);
-int item_head(struct bytes *bytes, uint64_t addr, uint64_t *head_out);
-int item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out);
-
+int bytes_set_byte_class(struct bytes *bytes, uint64_t addr, uint32_t class_);
 int set_class_code(struct bytes *bytes, uint64_t first, uint64_t last);
 int set_class_data(struct bytes *bytes, uint64_t first, uint64_t last);
 int set_class_unknown(struct bytes *bytes, uint64_t first, uint64_t last);
 
+
+
+
+/* DATATYPE */
+int get_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t *datatype_out);
+int set_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t datatype);
+int set_bytes_datatype_byte(struct bytes *bytes, uint64_t addr);
+int set_bytes_datatype_word(struct bytes *bytes, uint64_t addr);
+int set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr);
+int set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr);
+
+/* ITEMS */
+
+int item_head(struct bytes *bytes, uint64_t addr, uint64_t *head_out);
+int item_end(struct bytes *bytes, uint64_t addr, uint64_t *end_out);
 
 /* TODO
 int first_item(struct bytes *bytes, uint64_t *addr);
@@ -59,12 +72,5 @@ int prev_item(struct bytes *bytes, uint64_t addr, uint64_t *prev_out);
 int next_not_tail(struct bytes *bytes, uint64_t addr, uint64_t *next_out);
 */
 
-
-/* DATATYPE */
-int get_bytes_datatype(struct bytes *bytes, uint64_t addr, uint32_t *datatype_out);
-int set_bytes_datatype_byte(struct bytes *bytes, uint64_t addr);
-int set_bytes_datatype_word(struct bytes *bytes, uint64_t addr);
-int set_bytes_datatype_dword(struct bytes *bytes, uint64_t addr);
-int set_bytes_datatype_qword(struct bytes *bytes, uint64_t addr);
 
 #endif

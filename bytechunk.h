@@ -31,6 +31,9 @@ void free_bytechunk(struct bytechunk *chunk);
 
 void dump_chunk(struct bytechunk *chunk);
 
+int chunk_contains_addr(struct bytechunk *chunk, uint64_t addr);
+int chunk_contains_range(struct bytechunk *chunk, uint64_t first, uint64_t last);
+
 int chunk_get_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t *flags);
 int chunk_set_byte_fields(struct bytechunk *chunk, uint64_t addr, uint32_t fields);
 
@@ -38,12 +41,26 @@ int merge_chunks(struct bytechunk *before, struct bytechunk *after);
 int expand_chunk_up(struct bytechunk *chunk, uint64_t last); 
 int expand_chunk_down(struct bytechunk *chunk, uint64_t first);
 
+
+
 /* VALUE FIELD */
 /* TODO: rename copy_bytes_from/to_chunk -> copy_from/to_chunk */
+int chunk_get_byte(struct bytechunk *chunk, uint64_t addr, uint8_t *byte_out);
+int chunk_set_byte(struct bytechunk *chunk, uint64_t addr, uint8_t byte);
 int copy_bytes_from_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
 int copy_bytes_to_chunk(struct bytechunk *chunk, uint64_t addr, uint8_t *buf, size_t size);
 /* TODO: rename chunk_set_bytes -> chunk_set_range_values */
 int chunk_set_bytes(struct bytechunk *chunk, uint8_t c, uint64_t first, uint64_t last);
+
+int chunk_get_word(struct bytechunk *chunk, uint64_t addr, uint16_t *word_out);
+int chunk_get_dword(struct bytechunk *chunk, uint64_t addr, uint32_t *dword_out);
+int chunk_get_qword(struct bytechunk *chunk, uint64_t addr, uint64_t *qword_out);
+/* TODO: s/set/put */
+int chunk_set_word(struct bytechunk *chunk, uint64_t addr, uint16_t word);
+int chunk_set_dword(struct bytechunk *chunk, uint64_t addr, uint32_t dword);
+int chunk_set_qword(struct bytechunk *chunk, uint64_t addr, uint64_t qword);
+
+
 
 
 /* CLASS FIELD */
@@ -63,12 +80,17 @@ int set_chunk_range_class_code(struct bytechunk *chunk, uint64_t first, uint64_t
 int set_chunk_range_class_data(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int set_chunk_range_class_tail(struct bytechunk *chunk, uint64_t first, uint64_t last);
 
+
+
+
 /* DATATYPE FIELD */
 int chunk_get_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t *datatype_out);
 int chunk_set_byte_datatype(struct bytechunk *chunk, uint64_t addr, uint32_t datatype);
 
-/*  ITEMS  */
 
+
+
+/*  ITEMS  */
 int chunk_first_item(struct bytechunk *chunk, uint64_t *head_out);
 int chunk_last_item(struct bytechunk *chunk, uint64_t *head_out);
 int chunk_next_item(struct bytechunk *chunk, uint64_t addr, uint64_t *next_out);
@@ -79,7 +101,6 @@ int chunk_first_not_tail(struct bytechunk *chunk, uint64_t *first_out);
 int chunk_last_not_tail(struct bytechunk *chunk, uint64_t *last_out);
 int chunk_next_not_tail(struct bytechunk *chunk, uint64_t addr, uint64_t *next_out);
 int chunk_prev_not_tail(struct bytechunk *chunk, uint64_t addr, uint64_t *prev_out);
-
 
 int chunk_create_code_item(struct bytechunk *chunk, uint64_t first, uint64_t last);
 int chunk_create_data_item_byte(struct bytechunk *chunk, uint64_t addr);
