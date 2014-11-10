@@ -9,6 +9,7 @@ workspace.o: 	workspace.c workspace.h
 testrunner.o: 	testrunner.c testrunner.h
 errno.o: 	errno.c errno.h
 loader.o:	loader.c loader-elf.c loader-raw.c loader.h
+lines.o:	lines.c lines.h workspace.h bytes.h
 
 
 CORE_OBJS = error.o \
@@ -16,7 +17,8 @@ CORE_OBJS = error.o \
 	    bytes.o \
 	    workspace.o \
 	    disassembler.o \
-	    loader.o
+	    loader.o \
+	    lines.o \
 
 core.a: $(CORE_OBJS)
 	ar rcs $@ $^
@@ -26,6 +28,7 @@ TEST_OBJS = bytechunk-test.o \
 	    workspace-test.o \
 	    disassembler-test.o \
 	    loader-test.o \
+	    lines-test.o
 
 test.exe: testrunner.o $(TEST_OBJS) core.a
 	$(CC) $(CFLAGS) -o $@ $^
