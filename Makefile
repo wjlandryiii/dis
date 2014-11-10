@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-lcapstone -lreadline -g -Wall
 
-all: test.exe
+all: test.exe dis_helloworld.exe
 
 bytechunk.o:	bytechunk.c bytechunk.h bytefields.h error.h
 bytes.o: 	bytes.c bytes.h bytechunk.h bytefields.h error.h
@@ -33,6 +33,11 @@ TEST_OBJS = bytechunk-test.o \
 test.exe: testrunner.o $(TEST_OBJS) core.a
 	$(CC) $(CFLAGS) -o $@ $^
 
+dis_helloworld.exe: dis_helloworld.o core.a
+	$(CC) $(CFLAGS) -o $@ $^
+
+dis_helloworld.o: dis_helloworld.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
