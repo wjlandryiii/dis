@@ -90,37 +90,62 @@ load_file_elf(struct workspace *ws, FILE *f){
 
 int
 pre_analysis_elf(struct workspace *ws){
-	uint64_t base_addr = 0x08048000;
+	const uint64_t base_addr = 0x08048000;
+	uint64_t addr;
+	Elf32_Ehdr ehdr;
+	int i;
 	register int r;
+
+	addr = base_addr;
 	r = 0;
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_byte(ws->ws_bytes, base_addr++);
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2; // e_type
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2; // e_machine
-	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_version
-	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_entry
-	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_phoff
-	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_shoff
-	r |= bytes_create_data_item_dword(ws->ws_bytes, base_addr); base_addr += 4;// e_flags
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_ehsize
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_phentsize
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_phnum
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shentsize
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shnum
-	r |= bytes_create_data_item_word(ws->ws_bytes, base_addr); base_addr += 2;// e_shstrndx
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_byte(ws->ws_bytes, addr++);
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2; // e_type
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2; // e_machine
+	r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4;// e_version
+	r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4;// e_entry
+	r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4;// e_phoff
+	r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4;// e_shoff
+	r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4;// e_flags
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2;// e_ehsize
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2;// e_phentsize
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2;// e_phnum
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2;// e_shentsize
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2;// e_shnum
+	r |= bytes_create_data_item_word(ws->ws_bytes, addr); addr += 2;// e_shstrndx
+	if(r){ return r; }
+
+	r = copy_from_bytes(ws->ws_bytes, base_addr, (void *)&ehdr, sizeof(ehdr));
+	if(r){ return r; }
+
+	for(i = 0; i < ehdr.e_phnum; i++){
+		addr = base_addr + ehdr.e_phoff + (ehdr.e_phentsize * i);
+		r = 0;
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_type */
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_offset */
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_vaddr */
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_paddr */
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_filesz */
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_memsz */
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_flags */
+		r |= bytes_create_data_item_dword(ws->ws_bytes, addr); addr += 4; /* p_align */
+	}
+	if(r){ return r; }
+
+	
 	return r;
 }
