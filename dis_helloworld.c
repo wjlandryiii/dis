@@ -4,14 +4,29 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #include "workspace.h"
 #include "loader.h"
+#include "bytes.h"
+#include "lines.h"
 
 void dump_disassembly(struct workspace *ws){
+	uint64_t addr;
+	register int r;
+	char line[1024];
 
+	r = bytes_first_not_tail(ws->ws_bytes, &addr);
+	if(r){ printf("bytes_first_not_tail()\n"); return; }
 
-
+	while(!r){
+		line_for_item(ws, addr, line, sizeof(line));
+		printf("%" PRIx64 "    %s\n", addr, line);
+		r = bytes_next_not_tail(ws->ws_bytes, addr, &addr);
+	}
 }
 
 
@@ -34,7 +49,6 @@ int main(int argc, char *argv[]){
 
 	loader = NULL;
 	for(i = 0; i < nloaders; i++){
-		printf("%s\n", compat_loaders[i]->ld_name);
 		if(strcmp(compat_loaders[i]->ld_name, "elf") == 0){
 			loader = compat_loaders[i];
 		}
