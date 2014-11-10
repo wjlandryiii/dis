@@ -164,5 +164,34 @@ int line_for_data_qword(struct workspace *ws, uint64_t addr, char *buf, size_t s
 }
 
 int line_for_item(struct workspace *ws, uint64_t itemaddr, char *buf, size_t size){
+	uint32_t fields;
+	register int r;
+
+	r = bytes_get_byte_fields(ws->ws_bytes, itemaddr, &fields);
+	if(r){ return r; }
+
+	if(is_class_code(fields)){
+		return line_for_code_item(ws, itemaddr, buf, size);
+	} else if(is_class_data(fields)){
+		if(is_datatype_byte(fields)){
+			return line_for_data_byte(ws, itemaddr, buf, size);
+		} else if(is_datatype_word(fields)){
+			return line_for_data_word(ws, itemaddr, buf, size);
+		} else if(is_datatype_dword(fields)){
+			return line_for_data_dword(ws, itemaddr, buf, size);
+		} else if(is_datatype_qword(fields)){
+			return line_for_data_qword(ws, itemaddr, buf, size);
+		} else {
+			// TODO
+			printf("UNKNOWN DATATYPE\n");
+			return -1;
+		}
+	} else if(is_class_unknown(fields)){
+		return line_for_unknown(ws, itemaddr, buf, size);
+	} else {
+		// TODO
+		printf("CLASS IS TAIL\n");
+		return -1;
+	}
 	return -1;
 }
